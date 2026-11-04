@@ -1,8 +1,21 @@
 from fastapi import HTTPException
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.route_point import schema
 from app.route_point.model import RoutePoint
+
+
+def clear_route_distances(session: Session, *route_ids) -> None:
+    """
+    Clear the stored segment distances of the given routes so the
+    distance script refetches them after stops were added, moved or removed.
+    """
+    session.execute(
+        update(RoutePoint)
+        .where(RoutePoint.route_id.in_(route_ids))
+        .values(distance_from_previous_km=None)
+    )
 
 
 def create_route_point(session: Session, route_point_data: schema.RoutePointCreate) -> RoutePoint:
@@ -17,6 +30,7 @@ def create_route_point(session: Session, route_point_data: schema.RoutePointCrea
     session.add(new_route_point)
 
     try:
+        clear_route_distances(session, new_route_point.route_id)
         session.commit()
         session.refresh(new_route_point)
     except Exception:
@@ -38,10 +52,13 @@ def update_route_point(
             detail=f"Route point with ID {route_point_id} not found"
         )
 
+    old_route_id = route_point_to_update.route_id
+
     for field, value in route_point_data.model_dump(exclude_unset=True).items():
         setattr(route_point_to_update, field, value)
 
     try:
+        clear_route_distances(session, old_route_id, route_point_to_update.route_id)
         session.commit()
         session.refresh(route_point_to_update)
     except Exception:
@@ -60,6 +77,7 @@ def delete_route_point(session: Session, route_point_id: str) -> None:
         )
 
     try:
+        clear_route_distances(session, route_point_to_delete.route_id)
         session.delete(route_point_to_delete)
         session.commit()
     except Exception:
