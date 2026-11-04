@@ -1,5 +1,6 @@
 
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 client = TestClient(app)
@@ -68,3 +69,5 @@ def test_create_route():
     response_data = response.json()
 
     assert response_data["route_name"] == route_data["route_name"]
+
+    client.delete(f"/routes/{response_data['id']}")

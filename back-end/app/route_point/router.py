@@ -13,7 +13,7 @@ router = APIRouter(
     tags=["route-points"]
 )
 
-@router.post("/", response_model=schema.RoutePointCreate, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=schema.RoutePointResponseSchema, status_code=status.HTTP_201_CREATED)
 def create_route_point(
     route_point_data: schema.RoutePointCreate,
     session: Annotated[Session, Depends(get_db)],
@@ -29,7 +29,7 @@ def create_route_point(
     return new_route_point
 
 
-@router.put("/{route_point_id}", response_model=schema.RoutePointEdit)
+@router.put("/{route_point_id}", response_model=schema.RoutePointResponseSchema)
 def update_route_point(
     route_point_id: uuid.UUID,
     route_point_data: schema.RoutePointEdit,

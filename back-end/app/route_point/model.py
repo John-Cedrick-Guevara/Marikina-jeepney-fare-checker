@@ -1,17 +1,22 @@
-from uuid import UUID
+import uuid
+from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, datetime
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
+from app.db.database import Base
 
-class Base(DeclarativeBase):
-    pass
 
 class RoutePoint(Base):
     __tablename__ = "route_points"
 
-    id: Mapped[UUID] = mapped_column(UUID, primary_key=True)
-    route_id: Mapped[UUID] = mapped_column(UUID, ForeignKey("routes.id"))
+    id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    route_id: Mapped[uuid.UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("routes.id")
+    )
 
     point_name: Mapped[str] = mapped_column(String, nullable=False)
 
