@@ -7,6 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
 
+
 class RoutePoint(Base):
     __tablename__ = "route_points"
 
