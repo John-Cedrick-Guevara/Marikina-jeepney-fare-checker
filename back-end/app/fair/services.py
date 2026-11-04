@@ -1,59 +1,131 @@
+import math
 import uuid
+from decimal import Decimal
 
-from sqlalchemy import select
+from fastapi import HTTPException
+from sqlalchemy import case, func, select
 from sqlalchemy.orm import Session, aliased
 
+from app.fair.model import FareMatrix
 from app.route_point.model import RoutePoint
+from app.routes.model import Route
 
 
-def get_route_poins(db: Session, route_a_id: uuid.UUID, route_b_id: uuid.UUID) -> list[RoutePoint]:
+def compute_fare(
+    distance_km: Decimal, fares: dict[int, FareMatrix]
+) -> tuple[Decimal, Decimal]:
     """
-    Get the route points from point a to b for a specific route.
+    Get the (regular, discounted) fare for a distance.
+    Partial kilometers are rounded up, with a minimum of 1 km.
     """
+
+    km = max(1, math.ceil(distance_km))
+
+    if km in fares:
+        return fares[km].regular_fare, fares[km].discounted_fare
+
+    # ponytail: past the fare table, extend the guide's pattern (+P2/km, discounted = 80% to the nearest 25 centavos);
+    # add rows to fare_matrix once the official table beyond its max km is known
+    max_km = max(fares)
+    regular = fares[max_km].regular_fare + 2 * (km - max_km)
+    discounted = (regular * Decimal("0.8") * 4).quantize(Decimal(1)) / 4
+    return regular, discounted.quantize(Decimal("0.01"))
+
+
+def get_route_points(db: Session, start_point_id: uuid.UUID, end_point_id: uuid.UUID) -> list[dict]:
+    """
+    Get every route that contains both the start and end point (in either direction),
+    with the route points from start to end in travel order.
+    """
+
+    if start_point_id == end_point_id:
+        raise HTTPException(status_code=400, detail="Start and end point must be different")
+
+    # The same stop is stored once per route, so resolve the selected IDs to stop names
+    # and match every route that has a stop with those names
+    names = dict(
+        db.execute(
+            select(RoutePoint.id, RoutePoint.point_name).where(
+                RoutePoint.id.in_([start_point_id, end_point_id])
+            )
+        ).all()
+    )
+
+    for point_id in (start_point_id, end_point_id):
+        if point_id not in names:
+            raise HTTPException(status_code=404, detail=f"Route point with ID {point_id} not found")
 
     origin = aliased(RoutePoint)
     destination = aliased(RoutePoint)
 
-    mathing_routes_query = (
+    matching_routes = (
         select(
             origin.route_id,
             origin.stop_sequence.label("origin_sequence"),
             destination.stop_sequence.label("destination_sequence"),
+            func.least(origin.stop_sequence, destination.stop_sequence).label("low_sequence"),
+            func.greatest(origin.stop_sequence, destination.stop_sequence).label("high_sequence"),
         )
         # Join the origin and destination points on the same route
         .join(
             destination,
             destination.route_id == origin.route_id,
         )
-        # Filter only where the origin and destination points are on the same route and the origin sequence comes before the destination sequence
+        # Filter only routes that contain both points, in any order
+        # ponytail: a route listing the same stop name twice (loop) matches once per pair, dedupe if loops are added
         .where(
-            origin.route_id == route_a_id,
-            destination.route_id == route_b_id,
-            origin.stop_sequence < destination.stop_sequence,
+            origin.point_name == names[start_point_id],
+            destination.point_name == names[end_point_id],
+            origin.id != destination.id,
         )
-    )
+    ).subquery()
 
-    # Create a subquery of the matching routes
-    matching_routes = mathing_routes_query.subquery()
-
-    # Retrieve all stops belonging to those matching routes.
-    # Join the original RoutePoint table with the temporary subquery
-    # using route_id.
+    # Retrieve the stops between the origin and destination of each matching route.
+    # Reversed trips (origin after destination) are ordered backwards so the list follows travel order.
     route_query = (
-        select(RoutePoint)
-        .join(
-            matching_routes,
-            matching_routes.c.route_id == RoutePoint.route_id,
-        )
-        # Filter only where the sequence is between the origin and destination sequences
+        select(RoutePoint, Route)
+        .join(matching_routes, matching_routes.c.route_id == RoutePoint.route_id)
+        .join(Route, Route.id == RoutePoint.route_id)
         .where(
-            matching_routes.c.origin_sequence <= RoutePoint.stop_sequence,
-            matching_routes.c.destination_sequence >= RoutePoint.stop_sequence,
+            RoutePoint.stop_sequence.between(
+                matching_routes.c.low_sequence, matching_routes.c.high_sequence
+            )
         )
-        # Order by the route id and the sequence
-        .order_by(RoutePoint.route_id, RoutePoint.stop_sequence)
+        .order_by(
+            Route.route_name,
+            Route.id,
+            case(
+                (
+                    matching_routes.c.origin_sequence < matching_routes.c.destination_sequence,
+                    RoutePoint.stop_sequence,
+                ),
+                else_=-RoutePoint.stop_sequence,
+            ),
+        )
     )
 
-    routes = db.execute(route_query).scalars().all()
+    # Group the flat rows into one entry per route
+    routes: dict[uuid.UUID, dict] = {}
+    for point, route in db.execute(route_query).all():
+        routes.setdefault(
+            route.id, {"route_id": route.id, "route_name": route.route_name, "points": []}
+        )["points"].append(point)
 
-    return routes
+    fares = {fare.distance_km: fare for fare in db.execute(select(FareMatrix)).scalars()}
+
+    for route in routes.values():
+        # Each stop stores the distance from the previous stop, so the trip distance
+        # is the sum over every stop except the lowest-sequence one, in either direction
+        first_stop = min(route["points"], key=lambda point: point.stop_sequence)
+        segments = [p.distance_from_previous_km for p in route["points"] if p is not first_stop]
+
+        # Distances not fetched yet: return the route without a fare instead of a wrong one
+        if None in segments:
+            route.update(distance_km=None, regular_fare=None, discounted_fare=None)
+            continue
+
+        distance = sum(segments, Decimal(0))
+        regular, discounted = compute_fare(distance, fares)
+        route.update(distance_km=distance, regular_fare=regular, discounted_fare=discounted)
+
+    return list(routes.values())

@@ -1,11 +1,13 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
+from app.routes import model as _routes_model  # noqa: F401  registers "routes" for the route_id FK
 
 
 class RoutePoint(Base):
@@ -24,6 +26,9 @@ class RoutePoint(Base):
 
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
+
+    # Road distance from the previous stop; null until scripts/fill_segment_distances.py fetches it
+    distance_from_previous_km: Mapped[Decimal | None] = mapped_column(Numeric(7, 3))
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
     updated_at: Mapped[datetime] = mapped_column(

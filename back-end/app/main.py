@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from app.fair import router as fair_router
 from app.route_point import router as route_point_router
 from app.routes import router as routes_router
 
@@ -7,3 +8,4 @@ app = FastAPI(title="Job Application Manager", description="A simple job applica
 
 app.include_router(routes_router.router)
 app.include_router(route_point_router.router)
+app.include_router(fair_router.router)
