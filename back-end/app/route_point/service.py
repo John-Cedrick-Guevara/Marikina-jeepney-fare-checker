@@ -1,6 +1,5 @@
 from fastapi import HTTPException
-from sqlalchemy import select, update
-from sqlalchemy.dialects.postgresql import distinct_on
+from sqlalchemy import distinct, select, update
 from sqlalchemy.orm import Session
 
 from app.route_point import schema
@@ -93,10 +92,9 @@ def list_stops(session: Session) -> list[RoutePoint]:
     so return one route point per name; the fare search matches routes by name anyway.
     """
     # ponytail: returns every stop unpaginated; add search/paging if stops reach the thousands
-    return list(
-        session.execute(
-            select(RoutePoint)
-            .ext(distinct_on(RoutePoint.point_name))
-            .order_by(RoutePoint.point_name)
-        ).scalars()
+    stmt = (
+        select(RoutePoint)
+        .distinct(RoutePoint.point_name)
+        .order_by(RoutePoint.point_name, RoutePoint.id)
     )
+    return list(session.execute(stmt).scalars())
