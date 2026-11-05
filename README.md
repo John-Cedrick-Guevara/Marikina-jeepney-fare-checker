@@ -31,7 +31,12 @@ Create `back-end/.env`:
 SUPABASE_URL=...                # project URL
 SUPABASE_CONNECTION_STRING=...  # Postgres connection string
 HEIGIT_KEY=...                  # OpenRouteService key, only for the distance script
+ADMIN_API_KEY=...               # required for create / edit / delete requests (X-Admin-Key header)
+CORS_ORIGINS=http://localhost:5173        # optional; web app origins allowed to call the API
+PUBLIC_RATE_LIMIT_PER_MINUTE=60           # optional; per-IP limit on public endpoints
 ```
+
+Behind a reverse proxy, start uvicorn with `--proxy-headers` so rate limiting sees the real client IP.
 
 ## Run locally
 
@@ -53,8 +58,11 @@ For a deployed web app, set `VITE_API_URL` to the API's origin.
 | --- | --- |
 | `GET /route-points/` | Every known stop, one per name, for the stop picker |
 | `GET /fair/routes?start_point_id=&end_point_id=` | Routes connecting two stops, with stops in travel order, distance and fares |
-| `POST/PUT/DELETE /routes/...` | Manage routes |
-| `POST/PUT/DELETE /route-points/...` | Manage stops on a route |
+| `GET /health` | Liveness check |
+| `POST/PUT/DELETE /routes/...` | Manage routes (admin key) |
+| `POST/PUT/DELETE /route-points/...` | Manage stops on a route (admin key) |
+
+Public endpoints are rate limited per IP (HTTP 429 with `Retry-After` when exceeded).
 
 Fare results are saved in `saved_fares` per stop pair and reused on the next request. Any change to `routes`, `route_points` or `fare_matrix` clears them (database triggers), so saved fares stay current.
 

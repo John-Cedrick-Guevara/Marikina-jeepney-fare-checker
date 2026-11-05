@@ -5,11 +5,13 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.security import public_rate_limit
 from app.fair import schema, services
 
 router = APIRouter(
     prefix="/fair",
-    tags=["fair"]
+    tags=["fair"],
+    dependencies=[Depends(public_rate_limit)],
 )
 
 @router.get("/routes", response_model=list[schema.RouteMatchSchema], status_code=status.HTTP_200_OK)
