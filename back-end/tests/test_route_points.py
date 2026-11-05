@@ -104,3 +104,18 @@ def test_edit_route_point(route_id):
     assert updated_point["point_name"] == updated_data["point_name"]
     assert updated_point["latitude"] == updated_data["latitude"]
     assert updated_point["longitude"] == updated_data["longitude"]
+
+
+def test_list_stops_one_per_name(route_id):
+    # The same stop on two routes must show once in the picker
+    other = client.post("/routes/", json={"route_name": "Test Route 2"}).json()["id"]
+    try:
+        for rid in (route_id, other):
+            client.post("/route-points/", json=point(rid, point_name="Zzq Search Stop"))
+
+        response = client.get("/route-points/")
+
+        assert response.status_code == 200
+        assert [s["point_name"] for s in response.json()].count("Zzq Search Stop") == 1
+    finally:
+        client.delete(f"/routes/{other}")

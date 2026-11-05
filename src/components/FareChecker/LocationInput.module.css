@@ -72,7 +72,8 @@
   box-shadow: var(--shadow-lg);
   border: 1.5px solid var(--gray-light);
   z-index: 50;
-  overflow: hidden;
+  max-height: 280px;
+  overflow-y: auto;
   list-style: none;
   animation: fadeDown 0.15s ease;
 }
@@ -105,12 +106,10 @@
   color: var(--navy);
 }
 
-.itemArea {
-  display: block;
-  font-size: 11px;
+.empty {
+  padding: 10px 14px;
+  font-size: 13px;
   color: var(--gray);
-  font-weight: 500;
-  margin-top: 1px;
 }
 
 .errorMsg {

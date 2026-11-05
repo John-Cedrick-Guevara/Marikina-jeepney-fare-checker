@@ -1,17 +1,31 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import LocationInput from './LocationInput'
 import TransportSelector from './TransportSelector'
 import PassengerSelector from './PassengerSelector'
-import { calculateFare } from '../../services/api'
+import { calculateFare, getStops } from '../../services/api'
 import styles from './FareCard.module.css'
 
 export default function FareCard({ onResult, onTransportChange }) {
-  const [from, setFrom]             = useState('')
-  const [to, setTo]                 = useState('')
+  // Selected stops ({ id, point_name }); null while the user is still typing
+  const [from, setFrom]             = useState(null)
+  const [to, setTo]                 = useState(null)
   const [transport, setTransport]   = useState('Jeepney')
   const [passenger, setPassenger]   = useState('Regular')
   const [loading, setLoading]       = useState(false)
   const [errors, setErrors]         = useState({})
+  const [stops, setStops]           = useState([])
+  const [stopsLoading, setStopsLoading] = useState(true)
+
+  // Load the known stops once for both pickers
+  useEffect(() => {
+    getStops()
+      .then(setStops)
+      .catch((err) => {
+        console.error('Failed to load stops', err)
+        setErrors({ api: 'Could not load the stop list. Please refresh the page.' })
+      })
+      .finally(() => setStopsLoading(false))
+  }, [])
 
   const handleTransport = (val) => {
     setTransport(val)
@@ -20,17 +34,22 @@ export default function FareCard({ onResult, onTransportChange }) {
 
   const validate = () => {
     const e = {}
-    if (!from.trim()) e.from = 'Please enter a starting point.'
-    if (!to.trim())   e.to   = 'Please enter a destination.'
-    if (from.trim() && to.trim() && from === to)
+    if (!from) e.from = 'Please pick a starting point from the suggestions.'
+    if (!to)   e.to   = 'Please pick a destination from the suggestions.'
+    if (from && to && from.point_name === to.point_name)
       e.to = 'Destination must be different from starting point.'
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
+  // Remount both pickers on swap so their text follows the swapped stops,
+  // including a side that was half-typed (no stop picked yet)
+  const [swapCount, setSwapCount] = useState(0)
+
   const handleSwap = () => {
     setFrom(to)
     setTo(from)
+    setSwapCount((n) => n + 1)
     setErrors({})
   }
 
@@ -60,10 +79,14 @@ export default function FareCard({ onResult, onTransportChange }) {
       {/* Location inputs */}
       <div className={styles.locationGroup}>
         <LocationInput
+          key={`from-${swapCount}`}
           id="from"
           label="Starting point"
           icon="📍"
-          placeholder="Where are you coming from?"
+          placeholder={stopsLoading ? 'Loading stops…' : 'Type a stop, e.g. Riverbanks'}
+          stops={stops}
+          disabled={stopsLoading}
+          excludeName={to?.point_name}
           value={from}
           onChange={(v) => { setFrom(v); setErrors((p) => ({ ...p, from: '' })) }}
           error={errors.from}
@@ -80,10 +103,14 @@ export default function FareCard({ onResult, onTransportChange }) {
         </button>
 
         <LocationInput
+          key={`to-${swapCount}`}
           id="to"
           label="Destination"
           icon="🎯"
-          placeholder="Where do you want to go?"
+          placeholder={stopsLoading ? 'Loading stops…' : 'Type a stop, e.g. OLOPSC'}
+          stops={stops}
+          disabled={stopsLoading}
+          excludeName={from?.point_name}
           value={to}
           onChange={(v) => { setTo(v); setErrors((p) => ({ ...p, to: '' })) }}
           error={errors.to}

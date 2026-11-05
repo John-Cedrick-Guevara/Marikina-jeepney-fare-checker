@@ -1,140 +1,149 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
-import { searchLocations } from '../../services/api'
+import { useState, useRef, useEffect } from 'react'
 import styles from './LocationInput.module.css'
 
+/**
+ * Rank stops for the typed text: names starting with it first, then names containing it
+ * (case-insensitive, like SQL ILIKE '%text%'). `excludeName` drops the stop chosen in the
+ * other field.
+ */
+export function matchStops(stops, text, excludeName) {
+  const q = text.trim().toLowerCase()
+  const candidates = stops.filter((s) => s.point_name !== excludeName)
+  if (!q) return candidates
+
+  const starts = []
+  const contains = []
+  for (const stop of candidates) {
+    const name = stop.point_name.toLowerCase()
+    if (name.startsWith(q)) starts.push(stop)
+    else if (name.includes(q)) contains.push(stop)
+  }
+  return [...starts, ...contains]
+}
+
+/**
+ * Type-to-search stop picker. Only known stops can be chosen, since fares exist only for
+ * stored routes: typing clears the selection until a suggestion is picked.
+ * `value` and `onChange` use a stop object ({ id, point_name }) or null.
+ */
 export default function LocationInput({
   id,
   label,
   icon,
+  stops,
   value,
   onChange,
   placeholder,
+  excludeName,
+  disabled,
   error,
 }) {
-  const [query, setQuery]           = useState(value || '')
-  const [suggestions, setSuggestions] = useState([])
+  const [query, setQuery]           = useState(value?.point_name ?? '')
   const [open, setOpen]             = useState(false)
   const [focusedIdx, setFocusedIdx] = useState(-1)
-  const inputRef = useRef(null)
-  const dropdownRef = useRef(null)
-  const debounceRef = useRef(null)
+  const wrapperRef = useRef(null)
 
-  // Keep local query in sync when parent clears the value
+  const suggestions = matchStops(stops, query, excludeName)
+
+  // Show the stop name when the parent sets the stop (e.g. swap)
   useEffect(() => {
-    if (value === '') setQuery('')
+    if (value) setQuery(value.point_name)
   }, [value])
 
-  const fetchSuggestions = useCallback(async (q) => {
-    if (!q.trim()) { setSuggestions([]); setOpen(false); return }
-    try {
-      const results = await searchLocations(q)
-      setSuggestions(results)
-      setOpen(results.length > 0)
-    } catch {
-      setSuggestions([])
-    }
-  }, [])
-
   const handleChange = (e) => {
-    const q = e.target.value
-    setQuery(q)
-    onChange('')          // clear confirmed selection while typing
-    setFocusedIdx(-1)
-
-    clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => fetchSuggestions(q), 200)
+    setQuery(e.target.value)
+    onChange(null)        // not a known stop until one is picked
+    setFocusedIdx(0)
+    setOpen(true)
   }
 
-  const handleSelect = (loc) => {
-    setQuery(loc.name)
-    onChange(loc.name)
-    setSuggestions([])
+  const handleSelect = (stop) => {
+    setQuery(stop.point_name)
+    onChange(stop)
     setOpen(false)
+    setFocusedIdx(-1)
+  }
+
+  // Leaving the field: accept an exact name typed in full, otherwise keep it unselected
+  const handleBlur = () => {
+    setOpen(false)
+    if (value) return
+    const exact = suggestions.find(
+      (s) => s.point_name.toLowerCase() === query.trim().toLowerCase()
+    )
+    if (exact) handleSelect(exact)
   }
 
   const handleKeyDown = (e) => {
-    if (!open) return
     if (e.key === 'ArrowDown') {
       e.preventDefault()
+      setOpen(true)
       setFocusedIdx((i) => Math.min(i + 1, suggestions.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setFocusedIdx((i) => Math.max(i - 1, 0))
-    } else if (e.key === 'Enter' && focusedIdx >= 0) {
-      e.preventDefault()
+    } else if (e.key === 'Enter' && open && suggestions[focusedIdx]) {
+      e.preventDefault()  // pick the stop instead of submitting the form
       handleSelect(suggestions[focusedIdx])
     } else if (e.key === 'Escape') {
       setOpen(false)
     }
   }
 
-  // Close on outside click
-  useEffect(() => {
-    const handler = (e) => {
-      if (
-        inputRef.current && !inputRef.current.contains(e.target) &&
-        dropdownRef.current && !dropdownRef.current.contains(e.target)
-      ) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
+  const listId = `${id}-listbox`
 
   return (
-    <div className={`${styles.wrapper} ${error ? styles.hasError : ''}`}>
+    <div ref={wrapperRef} className={`${styles.wrapper} ${error ? styles.hasError : ''}`}>
       <div className={`${styles.field} ${open ? styles.active : ''}`}>
         <span className={styles.icon} aria-hidden="true">{icon}</span>
         <div className={styles.inputWrap}>
           <label htmlFor={id} className={styles.label}>{label}</label>
           <input
-            ref={inputRef}
             id={id}
             type="text"
+            role="combobox"
             autoComplete="off"
             placeholder={placeholder}
             value={query}
+            disabled={disabled}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            onFocus={() => query && fetchSuggestions(query)}
+            onFocus={() => setOpen(true)}
+            onBlur={handleBlur}
             className={styles.input}
             aria-autocomplete="list"
             aria-expanded={open}
-            aria-controls={`${id}-dropdown`}
-            aria-activedescendant={focusedIdx >= 0 ? `${id}-opt-${focusedIdx}` : undefined}
+            aria-controls={listId}
+            aria-activedescendant={open && focusedIdx >= 0 ? `${id}-opt-${focusedIdx}` : undefined}
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? `${id}-error` : undefined}
           />
         </div>
       </div>
 
       {open && (
-        <ul
-          ref={dropdownRef}
-          id={`${id}-dropdown`}
-          className={styles.dropdown}
-          role="listbox"
-        >
-          {suggestions.map((loc, i) => (
+        <ul id={listId} className={styles.dropdown} role="listbox" aria-label={label}>
+          {suggestions.length === 0 ? (
+            <li className={styles.empty}>No stop matches “{query.trim()}”. Try another name.</li>
+          ) : suggestions.map((stop, i) => (
             <li
-              key={loc.id}
+              key={stop.id}
               id={`${id}-opt-${i}`}
               role="option"
               aria-selected={i === focusedIdx}
               className={`${styles.item} ${i === focusedIdx ? styles.itemFocused : ''}`}
-              onMouseDown={() => handleSelect(loc)}
+              // mousedown fires before the input's blur, so the pick isn't lost
+              onMouseDown={(e) => { e.preventDefault(); handleSelect(stop) }}
             >
-              <span className={styles.itemIcon}>📍</span>
-              <div>
-                <span className={styles.itemName}>{loc.name}</span>
-                <span className={styles.itemArea}>{loc.area}</span>
-              </div>
+              <span className={styles.itemIcon} aria-hidden="true">📍</span>
+              <span className={styles.itemName}>{stop.point_name}</span>
             </li>
           ))}
         </ul>
       )}
 
       {error && (
-        <p className={styles.errorMsg} role="alert">⚠ {error}</p>
+        <p id={`${id}-error`} className={styles.errorMsg} role="alert">⚠ {error}</p>
       )}
     </div>
   )

@@ -20,7 +20,7 @@ export default function FareResult({ result, onClose }) {
   if (!result) return null
 
   const icon = TRANSPORT_ICONS[result.transport] || '🚌'
-  const hasDiscount = result.discountRate > 0
+  const hasDiscount = result.discountAmount > 0
 
   return (
     <div
@@ -37,7 +37,7 @@ export default function FareResult({ result, onClose }) {
         {/* Header */}
         <div className={styles.header}>
           <span className={styles.transportBadge}>
-            {icon} {result.transportLabel}
+            {icon} {result.routeName}
           </span>
 
           <div className={styles.fare}>
@@ -76,18 +76,11 @@ export default function FareResult({ result, onClose }) {
         <div className={styles.breakdown}>
           <p className={styles.breakdownTitle}>Fare breakdown</p>
 
-          <BreakdownRow label="Base fare (first 4 km)" value={`₱${result.baseFare.toFixed(2)}`} />
-
-          {result.extraCharge > 0 && (
-            <BreakdownRow
-              label={`Extra distance (${result.distance} km − 4 km)`}
-              value={`₱${result.extraCharge.toFixed(2)}`}
-            />
-          )}
+          <BreakdownRow label="Regular fare" value={`₱${result.regularFare.toFixed(2)}`} />
 
           {hasDiscount && (
             <BreakdownRow
-              label={`Discount (20% ${result.passengerType})`}
+              label={`Discount (${result.passengerType})`}
               value={`−₱${result.discountAmount.toFixed(2)}`}
               valueClass={styles.green}
             />
@@ -98,18 +91,15 @@ export default function FareResult({ result, onClose }) {
             <span>₱{result.total.toFixed(2)}</span>
           </div>
 
-          <BreakdownRow label="Est. distance" value={`~${result.distance} km`} />
+          <BreakdownRow label="Est. distance" value={`~${result.distance.toFixed(1)} km`} />
+          <BreakdownRow label="Stops" value={result.stops} />
           <BreakdownRow label="Passenger type" value={result.passengerType} />
         </div>
 
         {/* Disclaimer */}
         <p className={styles.disclaimer}>
-          <strong>⚠ Sample estimate only.</strong> Fares are for demonstration
-          purposes. Always confirm the actual fare with your driver or operator.
-          <br />
-          <span className={styles.source}>
-            Source: {result.source} · {result.lastUpdated}
-          </span>
+          <strong>⚠ Estimate only.</strong> Based on the traditional jeepney
+          fare matrix. Always confirm the actual fare with your driver or operator.
         </p>
 
         <button

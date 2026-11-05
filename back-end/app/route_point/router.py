@@ -13,6 +13,17 @@ router = APIRouter(
     tags=["route-points"]
 )
 
+@router.get("/", response_model=list[schema.StopSchema])
+def list_stops(session: Annotated[Session, Depends(get_db)]):
+    """
+    List every known stop, one entry per stop name, sorted by name.
+
+    :param session: SQLAlchemy session object
+    :return: The known stops
+    """
+    return service.list_stops(session)
+
+
 @router.post("/", response_model=schema.RoutePointResponseSchema, status_code=status.HTTP_201_CREATED)
 def create_route_point(
     route_point_data: schema.RoutePointCreate,

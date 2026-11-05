@@ -1,7 +1,8 @@
 from datetime import datetime
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Integer, Numeric
+from sqlalchemy import DateTime, Integer, Numeric, String
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -20,3 +21,16 @@ class FareMatrix(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now, onupdate=datetime.now
     )
+
+
+class SavedFare(Base):
+    """A /fair/routes result saved for a stop pair; cleared by DB triggers when routes or fares change."""
+
+    __tablename__ = "saved_fares"
+
+    start_point_name: Mapped[str] = mapped_column(String, primary_key=True)
+    end_point_name: Mapped[str] = mapped_column(String, primary_key=True)
+
+    routes: Mapped[list[dict]] = mapped_column(JSONB, nullable=False)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now)
