@@ -1,24 +1,55 @@
+import logging
 import os
-import secrets
 import time
 from collections import defaultdict
+from dataclasses import dataclass
+from functools import lru_cache
 from threading import Lock
 from typing import Annotated
 
+import jwt
 from fastapi import Header, HTTPException, Request
 
+logger = logging.getLogger(__name__)
 
-def require_admin(x_admin_key: Annotated[str | None, Header()] = None) -> None:
+
+@lru_cache
+def _jwks_client() -> jwt.PyJWKClient:
+    """Supabase Auth's public signing keys, fetched once and cached."""
+    supabase_url = os.getenv("SUPABASE_URL", "").rstrip("/")
+    return jwt.PyJWKClient(f"{supabase_url}/auth/v1/.well-known/jwks.json", cache_keys=True)
+
+
+def signing_key(token: str):
+    """The public key that signed a Supabase access token."""
+    return _jwks_client().get_signing_key_from_jwt(token).key
+
+
+@dataclass
+class Admin:
+    user_id: str
+    email: str
+
+
+def require_admin(authorization: Annotated[str | None, Header()] = None) -> Admin:
     """
-    Allow a write only with the admin key from ADMIN_API_KEY.
-    Fails closed: with no key configured, every write is refused.
+    Allow the request only for a signed-in Supabase user whose app_metadata.role is "admin".
+    app_metadata can only be set server-side (SQL or the Supabase dashboard), not by the user.
     """
-    # ponytail: one shared key until the admin panel brings Supabase Auth
-    expected = os.getenv("ADMIN_API_KEY")
-    if not expected:
-        raise HTTPException(status_code=503, detail="Admin API is not configured")
-    if x_admin_key is None or not secrets.compare_digest(x_admin_key, expected):
-        raise HTTPException(status_code=401, detail="Invalid or missing admin key")
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="Please sign in as an admin.")
+    token = authorization[7:]
+
+    try:
+        claims = jwt.decode(token, signing_key(token), algorithms=["ES256", "RS256"], audience="authenticated")
+    except (jwt.PyJWTError, jwt.PyJWKClientError) as err:
+        logger.info("Rejected admin token: %s", err)
+        raise HTTPException(status_code=401, detail="Your session has expired. Please sign in again.")
+
+    if (claims.get("app_metadata") or {}).get("role") != "admin":
+        raise HTTPException(status_code=403, detail="This account is not an admin.")
+
+    return Admin(user_id=claims["sub"], email=claims.get("email", ""))
 
 
 class RateLimiter:
