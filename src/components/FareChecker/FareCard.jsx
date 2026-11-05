@@ -1,8 +1,8 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import LocationInput from './LocationInput'
 import TransportSelector from './TransportSelector'
 import PassengerSelector from './PassengerSelector'
-import { calculateFare } from '../../services/api'
+import { calculateFare, getStops } from '../../services/api'
 import styles from './FareCard.module.css'
 
 export default function FareCard({ onResult, onTransportChange }) {
@@ -13,6 +13,19 @@ export default function FareCard({ onResult, onTransportChange }) {
   const [passenger, setPassenger]   = useState('Regular')
   const [loading, setLoading]       = useState(false)
   const [errors, setErrors]         = useState({})
+  const [stops, setStops]           = useState([])
+  const [stopsLoading, setStopsLoading] = useState(true)
+
+  // Load the known stops once for both pickers
+  useEffect(() => {
+    getStops()
+      .then(setStops)
+      .catch((err) => {
+        console.error('Failed to load stops', err)
+        setErrors({ api: 'Could not load the stop list. Please refresh the page.' })
+      })
+      .finally(() => setStopsLoading(false))
+  }, [])
 
   const handleTransport = (val) => {
     setTransport(val)
@@ -21,8 +34,8 @@ export default function FareCard({ onResult, onTransportChange }) {
 
   const validate = () => {
     const e = {}
-    if (!from) e.from = 'Please choose a starting point from the list.'
-    if (!to)   e.to   = 'Please choose a destination from the list.'
+    if (!from) e.from = 'Please choose a starting point.'
+    if (!to)   e.to   = 'Please choose a destination.'
     if (from && to && from.point_name === to.point_name)
       e.to = 'Destination must be different from starting point.'
     setErrors(e)
@@ -64,7 +77,10 @@ export default function FareCard({ onResult, onTransportChange }) {
           id="from"
           label="Starting point"
           icon="📍"
-          placeholder="Where are you coming from?"
+          placeholder={stopsLoading ? 'Loading stops…' : 'Choose your starting stop'}
+          stops={stops}
+          disabled={stopsLoading}
+          disabledName={to?.point_name}
           value={from}
           onChange={(v) => { setFrom(v); setErrors((p) => ({ ...p, from: '' })) }}
           error={errors.from}
@@ -84,7 +100,10 @@ export default function FareCard({ onResult, onTransportChange }) {
           id="to"
           label="Destination"
           icon="🎯"
-          placeholder="Where do you want to go?"
+          placeholder={stopsLoading ? 'Loading stops…' : 'Choose your destination stop'}
+          stops={stops}
+          disabled={stopsLoading}
+          disabledName={from?.point_name}
           value={to}
           onChange={(v) => { setTo(v); setErrors((p) => ({ ...p, to: '' })) }}
           error={errors.to}

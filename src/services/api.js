@@ -20,15 +20,15 @@ async function request(path) {
 }
 
 /**
- * Search stops by name. Returns [{ id, point_name }].
- * GET /route-points/?q=<query>
+ * List every known stop, sorted by name. Returns [{ id, point_name }].
+ * GET /route-points/
  */
-export async function searchLocations(query) {
-  return request(`/route-points/?q=${encodeURIComponent(query)}`)
+export async function getStops() {
+  return request('/route-points/')
 }
 
 /**
- * Find the fare between two stops. `from` and `to` are stops from searchLocations.
+ * Find the fare between two stops. `from` and `to` are stops from getStops.
  * GET /fair/routes?start_point_id=&end_point_id=
  *
  * The backend returns every route that connects both stops; the cheapest one with a

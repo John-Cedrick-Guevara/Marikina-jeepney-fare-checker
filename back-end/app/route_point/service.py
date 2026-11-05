@@ -87,17 +87,16 @@ def delete_route_point(session: Session, route_point_id: str) -> None:
 
 
 
-def search_stops(session: Session, query: str, limit: int = 8) -> list[RoutePoint]:
+def list_stops(session: Session) -> list[RoutePoint]:
     """
-    Search stop names for the location picker. The same stop is stored once per route,
+    List every stop for the stop picker. The same stop is stored once per route,
     so return one route point per name; the fare search matches routes by name anyway.
     """
+    # ponytail: returns every stop unpaginated; add search/paging if stops reach the thousands
     return list(
         session.execute(
             select(RoutePoint)
-            .where(RoutePoint.point_name.icontains(query.strip(), autoescape=True))
             .ext(distinct_on(RoutePoint.point_name))
             .order_by(RoutePoint.point_name)
-            .limit(limit)
         ).scalars()
     )
