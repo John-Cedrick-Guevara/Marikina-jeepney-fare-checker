@@ -2,8 +2,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from tests.conftest import ADMIN_HEADERS
 
-client = TestClient(app)
+client = TestClient(app, headers=ADMIN_HEADERS)
 
 NON_EXISTENT_ID = "00000000-0000-0000-0000-000000000001"
 

@@ -8,9 +8,10 @@ from app.db.database import SessionLocal
 from app.fair.model import FareMatrix, SavedFare
 from app.fair.services import compute_fare
 from app.main import app
+from tests.conftest import ADMIN_HEADERS
 from app.route_point.model import RoutePoint
 
-client = TestClient(app)
+client = TestClient(app, headers=ADMIN_HEADERS)
 
 NON_EXISTENT_ID = "00000000-0000-0000-0000-000000000001"
 

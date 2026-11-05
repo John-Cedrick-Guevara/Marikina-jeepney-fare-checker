@@ -5,11 +5,13 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.security import require_admin
 from app.routes import schema, service
 
 router = APIRouter(
     prefix="/routes",
-    tags=["routes"]
+    tags=["routes"],
+    dependencies=[Depends(require_admin)],
 )
 
 @router.post("/", response_model=schema.RouteResponseSchema, status_code=status.HTTP_201_CREATED)
