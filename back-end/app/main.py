@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 
 from app.fair import router as fair_router
 from app.route_point import router as route_point_router
@@ -9,10 +10,18 @@ from app.routes import router as routes_router
 
 app = FastAPI(title="Commute.ph API", description="Jeepney fare checker for Marikina City", version="1.0.0")
 
-# Browsers may call the API only from these origins (comma-separated in CORS_ORIGINS)
+# Configure CORS for production and development
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
+origins_list = [origin.strip() for origin in cors_origins.split(",")]
+
+# Add wildcard for Vercel preview deployments if needed
+if os.getenv("VERCEL_ENV") == "preview":
+    origins_list.append("https://*.vercel.app")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:5173").split(","),
+    allow_origins=origins_list,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -27,3 +36,6 @@ def health():
 app.include_router(routes_router.router)
 app.include_router(route_point_router.router)
 app.include_router(fair_router.router)
+
+# Vercel handler
+handler = Mangum(app)
