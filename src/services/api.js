@@ -7,7 +7,14 @@
 const BASE = import.meta.env.VITE_API_URL || '/api'
 
 async function request(path) {
-  const res = await fetch(`${BASE}${path}`)
+  let res
+  try {
+    res = await fetch(`${BASE}${path}`)
+  } catch (err) {
+    // Network failure (server down, offline): the browser only says "Failed to fetch"
+    console.error(`GET ${BASE}${path} failed`, err)
+    throw new Error("Can't reach the fare server right now. Please try again in a moment.")
+  }
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
