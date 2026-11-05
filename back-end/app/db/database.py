@@ -3,6 +3,13 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
+# Local development reads back-end/.env; on Vercel the variables come from the project settings
+try:
+    from dotenv import load_dotenv  # installed with pydantic-settings
+    load_dotenv()
+except ImportError:
+    pass
+
 # Get connection string from environment variable
 SUPABASE_CONNECTION_STRING = os.getenv("SUPABASE_CONNECTION_STRING")
 

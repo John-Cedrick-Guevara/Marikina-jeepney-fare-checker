@@ -9,23 +9,49 @@ from app.security import public_rate_limit
 from app.fair import schema, services
 
 router = APIRouter(
-    prefix="/fair",
-    tags=["fair"],
+    prefix="/v1",
+    tags=["fares"],
     dependencies=[Depends(public_rate_limit)],
 )
 
-@router.get("/routes", response_model=list[schema.RouteMatchSchema], status_code=status.HTTP_200_OK)
-def get_routes_between_points(
-    start_point_id: uuid.UUID,
-    end_point_id: uuid.UUID,
+
+@router.get("/fares/estimate", response_model=schema.FareEstimateSchema, status_code=status.HTTP_200_OK)
+def estimate_fare(
+    origin_stop_id: uuid.UUID,
+    destination_stop_id: uuid.UUID,
+    puv_type: str,
     session: Annotated[Session, Depends(get_db)],
 ):
     """
-    Get every route that contains both points, with the route points from start to end.
+    Estimate the fare between two stops for a PUV type: every route of that type passing both
+    stops, with the stops from origin to destination, distance and fares.
 
-    :param start_point_id: The ID of the selected start route point
-    :param end_point_id: The ID of the selected end route point
+    :param origin_stop_id: The ID of the starting stop
+    :param destination_stop_id: The ID of the destination stop
+    :param puv_type: The PUV type code, e.g. traditional_jeepney
     :param session: SQLAlchemy session object
-    :return: The matching routes and their route points in travel order
+    :return: The fare matrix in effect and the matching routes
     """
-    return services.get_route_points(session, start_point_id, end_point_id)
+    return services.estimate_fare(session, origin_stop_id, destination_stop_id, puv_type)
+
+
+@router.get("/transport-types", response_model=list[schema.TransportTypeSchema])
+def list_transport_types(session: Annotated[Session, Depends(get_db)]):
+    """
+    List the supported PUV types and whether fares are available for each.
+
+    :param session: SQLAlchemy session object
+    :return: The PUV types
+    """
+    return services.list_transport_types(session)
+
+
+@router.get("/fare-data/status", response_model=list[schema.FareDataStatusSchema])
+def fare_data_status(session: Annotated[Session, Depends(get_db)]):
+    """
+    Show which fare matrix is in effect for each PUV type, with its source and dates.
+
+    :param session: SQLAlchemy session object
+    :return: The fare data status per PUV type
+    """
+    return services.fare_data_status(session)

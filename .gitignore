@@ -1,0 +1,17 @@
+# Secrets: never commit (use .env.example for the variable names)
+.env
+.env.*
+!.env.example
+
+# Dependencies and builds
+node_modules
+dist
+.venv/
+
+# Python caches
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+*.db
