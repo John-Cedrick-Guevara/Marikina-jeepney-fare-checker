@@ -11,7 +11,7 @@ from app.routes import model as _routes_model  # noqa: F401  registers "routes" 
 
 
 class RoutePoint(Base):
-    __tablename__ = "route_points"
+    __tablename__ = "route_stops"
 
     id: Mapped[uuid.UUID] = mapped_column(
         PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
