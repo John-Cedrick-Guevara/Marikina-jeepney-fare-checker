@@ -34,17 +34,22 @@ export default function FareCard({ onResult, onTransportChange }) {
 
   const validate = () => {
     const e = {}
-    if (!from) e.from = 'Please choose a starting point.'
-    if (!to)   e.to   = 'Please choose a destination.'
+    if (!from) e.from = 'Please pick a starting point from the suggestions.'
+    if (!to)   e.to   = 'Please pick a destination from the suggestions.'
     if (from && to && from.point_name === to.point_name)
       e.to = 'Destination must be different from starting point.'
     setErrors(e)
     return Object.keys(e).length === 0
   }
 
+  // Remount both pickers on swap so their text follows the swapped stops,
+  // including a side that was half-typed (no stop picked yet)
+  const [swapCount, setSwapCount] = useState(0)
+
   const handleSwap = () => {
     setFrom(to)
     setTo(from)
+    setSwapCount((n) => n + 1)
     setErrors({})
   }
 
@@ -74,13 +79,14 @@ export default function FareCard({ onResult, onTransportChange }) {
       {/* Location inputs */}
       <div className={styles.locationGroup}>
         <LocationInput
+          key={`from-${swapCount}`}
           id="from"
           label="Starting point"
           icon="📍"
-          placeholder={stopsLoading ? 'Loading stops…' : 'Choose your starting stop'}
+          placeholder={stopsLoading ? 'Loading stops…' : 'Type a stop, e.g. Riverbanks'}
           stops={stops}
           disabled={stopsLoading}
-          disabledName={to?.point_name}
+          excludeName={to?.point_name}
           value={from}
           onChange={(v) => { setFrom(v); setErrors((p) => ({ ...p, from: '' })) }}
           error={errors.from}
@@ -97,13 +103,14 @@ export default function FareCard({ onResult, onTransportChange }) {
         </button>
 
         <LocationInput
+          key={`to-${swapCount}`}
           id="to"
           label="Destination"
           icon="🎯"
-          placeholder={stopsLoading ? 'Loading stops…' : 'Choose your destination stop'}
+          placeholder={stopsLoading ? 'Loading stops…' : 'Type a stop, e.g. OLOPSC'}
           stops={stops}
           disabled={stopsLoading}
-          disabledName={from?.point_name}
+          excludeName={from?.point_name}
           value={to}
           onChange={(v) => { setTo(v); setErrors((p) => ({ ...p, to: '' })) }}
           error={errors.to}
