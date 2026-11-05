@@ -116,8 +116,10 @@ export default function StopsPage() {
                     <td>{stop.longitude}</td>
                     <td>{stop.aliases.join(', ') || '—'}</td>
                     <td style={{ whiteSpace: 'nowrap' }}>
-                      <button className={`${styles.button} ${styles.small}`} onClick={() => setEditing({ id: stop.id, form: toForm(stop) })}>Edit</button>{' '}
-                      <button className={`${styles.button} ${styles.small} ${styles.danger}`} onClick={() => remove(stop)}>Delete</button>
+                      <button className={`${styles.button} ${styles.small}`} aria-label={`Edit ${stop.name}`}
+                              onClick={() => setEditing({ id: stop.id, form: toForm(stop) })}>Edit</button>{' '}
+                      <button className={`${styles.button} ${styles.small} ${styles.danger}`} aria-label={`Delete ${stop.name}`}
+                              onClick={() => remove(stop)}>Delete</button>
                     </td>
                   </tr>
                 ))}

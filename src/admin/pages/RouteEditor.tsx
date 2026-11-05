@@ -100,7 +100,7 @@ export default function RouteEditor() {
                   <td style={{ whiteSpace: 'nowrap' }}>
                     <button className={`${styles.button} ${styles.small}`} disabled={i === 0} onClick={() => move(i, -1)} aria-label={`Move ${stopName(stopId)} up`}>↑</button>{' '}
                     <button className={`${styles.button} ${styles.small}`} disabled={i === order.length - 1} onClick={() => move(i, 1)} aria-label={`Move ${stopName(stopId)} down`}>↓</button>{' '}
-                    <button className={`${styles.button} ${styles.small} ${styles.danger}`} onClick={() => setOrder(order.filter((_, j) => j !== i))}>Remove</button>
+                    <button className={`${styles.button} ${styles.small} ${styles.danger}`} onClick={() => setOrder(order.filter((_, j) => j !== i))} aria-label={`Remove ${stopName(stopId)}`}>Remove</button>
                   </td>
                 </tr>
               ))}

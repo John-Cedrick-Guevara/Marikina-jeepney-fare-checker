@@ -67,7 +67,7 @@ export default function RoutesPage() {
                   <td>{r.route_name}</td>
                   <td>{label(r.puv_type)}</td>
                   <td className={styles.num}>{r.stop_count}</td>
-                  <td><Link to={`/admin/routes/${r.id}`}>Edit</Link></td>
+                  <td><Link to={`/admin/routes/${r.id}`} aria-label={`Edit ${r.route_name}`}>Edit</Link></td>
                 </tr>
               ))}
             </tbody>

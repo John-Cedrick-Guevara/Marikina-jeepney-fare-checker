@@ -2,6 +2,7 @@ import { useEffect, useState, type ChangeEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { adminApi, formatDate, type FareRow, type PublishPreview, type VersionDetail } from '../adminApi'
 import { StatusBadge } from './StatusBadge'
+import { transportLabel } from '../../components/FareChecker/TransportSelector'
 import styles from '../admin.module.css'
 
 /** Editable copy of a draft's fields; numbers stay strings while typing. */
@@ -165,7 +166,7 @@ export default function FareMatrixEditor() {
     <>
       <p><Link to="/admin/fare-matrices">← Fare matrices</Link></p>
       <h1 className={styles.title}>
-        {version.puv_type.replace('_', ' ')} fare matrix <StatusBadge version={version} />
+        {transportLabel(version.puv_type)} fare matrix <StatusBadge version={version} />
       </h1>
       <p className={styles.subtitle}>
         {isDraft
@@ -293,7 +294,7 @@ export default function FareMatrixEditor() {
               <p>
                 This matrix takes effect {preview.takes_effect_now ? 'immediately' : `on ${formatDate(preview.retire_on)}`}.{' '}
                 {preview.retiring_saved_fares > 0
-                  ? `${preview.retiring_saved_fares} saved ${version.puv_type.replace('_', ' ')} fares will be retired ${preview.takes_effect_now ? 'now' : 'then'}. They are soft-deleted and kept for 15 days in case this matrix is retracted.`
+                  ? `${preview.retiring_saved_fares} saved ${transportLabel(version.puv_type)} fares will be retired ${preview.takes_effect_now ? 'now' : 'then'}. They are soft-deleted and kept for 15 days in case this matrix is retracted.`
                   : 'No saved fares will be retired.'}
               </p>
               <p style={{ marginTop: 8 }}>Published matrices can't be edited. You'll be recorded as the verifier.</p>

@@ -1,5 +1,6 @@
 import logging
 import os
+import ssl
 import time
 from collections import defaultdict
 from dataclasses import dataclass
@@ -7,6 +8,7 @@ from functools import lru_cache
 from threading import Lock
 from typing import Annotated
 
+import certifi
 import jwt
 from fastapi import Header, HTTPException, Request
 
@@ -17,7 +19,12 @@ logger = logging.getLogger(__name__)
 def _jwks_client() -> jwt.PyJWKClient:
     """Supabase Auth's public signing keys, fetched once and cached."""
     supabase_url = os.getenv("SUPABASE_URL", "").rstrip("/")
-    return jwt.PyJWKClient(f"{supabase_url}/auth/v1/.well-known/jwks.json", cache_keys=True)
+    # urllib (used by PyJWT) has no CA bundle on some Python installs (e.g. python.org macOS builds)
+    return jwt.PyJWKClient(
+        f"{supabase_url}/auth/v1/.well-known/jwks.json",
+        cache_keys=True,
+        ssl_context=ssl.create_default_context(cafile=certifi.where()),
+    )
 
 
 def signing_key(token: str):
@@ -41,8 +48,18 @@ def require_admin(authorization: Annotated[str | None, Header()] = None) -> Admi
     token = authorization[7:]
 
     try:
-        claims = jwt.decode(token, signing_key(token), algorithms=["ES256", "RS256"], audience="authenticated")
-    except (jwt.PyJWTError, jwt.PyJWKClientError) as err:
+        key = signing_key(token)
+    except jwt.PyJWKClientConnectionError:
+        # Our problem, not the user's: don't tell them to sign in again
+        logger.exception("Could not fetch Supabase signing keys")
+        raise HTTPException(status_code=503, detail="Sign-in can't be checked right now. Please try again in a moment.")
+    except jwt.PyJWTError as err:  # malformed token or unknown key ID
+        logger.info("Rejected admin token: %s", err)
+        raise HTTPException(status_code=401, detail="Your session has expired. Please sign in again.")
+
+    try:
+        claims = jwt.decode(token, key, algorithms=["ES256", "RS256"], audience="authenticated")
+    except jwt.PyJWTError as err:
         logger.info("Rejected admin token: %s", err)
         raise HTTPException(status_code=401, detail="Your session has expired. Please sign in again.")
 

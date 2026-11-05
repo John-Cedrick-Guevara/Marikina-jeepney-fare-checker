@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { adminApi, formatDate, type SavedFare } from '../adminApi'
+import { transportLabel } from '../../components/FareChecker/TransportSelector'
 import styles from '../admin.module.css'
 
 /** Read-only view of saved fares; soft-deleted ones are kept 15 days after a new matrix takes effect. */
@@ -45,7 +46,7 @@ export default function SavedFaresPage() {
                   <tr key={f.id}>
                     <td>{f.origin}</td>
                     <td>{f.destination}</td>
-                    <td>{f.puv_type.replace('_', ' ')}</td>
+                    <td>{transportLabel(f.puv_type)}</td>
                     <td className={styles.num}>{f.route_count}</td>
                     <td className={styles.num}>{f.cheapest_regular_fare !== null ? `₱${f.cheapest_regular_fare.toFixed(2)}` : '—'}</td>
                     <td>{formatDate(f.fare_matrix_effective_from)}</td>
