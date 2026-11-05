@@ -2,7 +2,7 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -12,6 +12,21 @@ router = APIRouter(
     prefix="/route-points",
     tags=["route-points"]
 )
+
+@router.get("/", response_model=list[schema.StopSchema])
+def search_stops(
+    session: Annotated[Session, Depends(get_db)],
+    q: Annotated[str, Query(max_length=100)] = "",
+):
+    """
+    Search stops by name (case-insensitive), one entry per stop name.
+
+    :param q: Part of the stop name; empty returns the first stops alphabetically
+    :param session: SQLAlchemy session object
+    :return: Up to 8 matching stops
+    """
+    return service.search_stops(session, q)
+
 
 @router.post("/", response_model=schema.RoutePointResponseSchema, status_code=status.HTTP_201_CREATED)
 def create_route_point(

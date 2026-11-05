@@ -11,7 +11,7 @@ export default function LocationInput({
   placeholder,
   error,
 }) {
-  const [query, setQuery]           = useState(value || '')
+  const [query, setQuery]           = useState(value?.point_name ?? '')
   const [suggestions, setSuggestions] = useState([])
   const [open, setOpen]             = useState(false)
   const [focusedIdx, setFocusedIdx] = useState(-1)
@@ -19,9 +19,9 @@ export default function LocationInput({
   const dropdownRef = useRef(null)
   const debounceRef = useRef(null)
 
-  // Keep local query in sync when parent clears the value
+  // Show the stop name when the parent sets the stop (e.g. swap)
   useEffect(() => {
-    if (value === '') setQuery('')
+    if (value) setQuery(value.point_name)
   }, [value])
 
   const fetchSuggestions = useCallback(async (q) => {
@@ -38,7 +38,7 @@ export default function LocationInput({
   const handleChange = (e) => {
     const q = e.target.value
     setQuery(q)
-    onChange('')          // clear confirmed selection while typing
+    onChange(null)        // clear confirmed selection while typing
     setFocusedIdx(-1)
 
     clearTimeout(debounceRef.current)
@@ -46,8 +46,8 @@ export default function LocationInput({
   }
 
   const handleSelect = (loc) => {
-    setQuery(loc.name)
-    onChange(loc.name)
+    setQuery(loc.point_name)
+    onChange(loc)
     setSuggestions([])
     setOpen(false)
   }
@@ -125,8 +125,7 @@ export default function LocationInput({
             >
               <span className={styles.itemIcon}>📍</span>
               <div>
-                <span className={styles.itemName}>{loc.name}</span>
-                <span className={styles.itemArea}>{loc.area}</span>
+                <span className={styles.itemName}>{loc.point_name}</span>
               </div>
             </li>
           ))}

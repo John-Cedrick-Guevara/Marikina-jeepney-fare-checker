@@ -6,8 +6,9 @@ import { calculateFare } from '../../services/api'
 import styles from './FareCard.module.css'
 
 export default function FareCard({ onResult, onTransportChange }) {
-  const [from, setFrom]             = useState('')
-  const [to, setTo]                 = useState('')
+  // Selected stops ({ id, point_name }); null while the user is still typing
+  const [from, setFrom]             = useState(null)
+  const [to, setTo]                 = useState(null)
   const [transport, setTransport]   = useState('Jeepney')
   const [passenger, setPassenger]   = useState('Regular')
   const [loading, setLoading]       = useState(false)
@@ -20,9 +21,9 @@ export default function FareCard({ onResult, onTransportChange }) {
 
   const validate = () => {
     const e = {}
-    if (!from.trim()) e.from = 'Please enter a starting point.'
-    if (!to.trim())   e.to   = 'Please enter a destination.'
-    if (from.trim() && to.trim() && from === to)
+    if (!from) e.from = 'Please choose a starting point from the list.'
+    if (!to)   e.to   = 'Please choose a destination from the list.'
+    if (from && to && from.point_name === to.point_name)
       e.to = 'Destination must be different from starting point.'
     setErrors(e)
     return Object.keys(e).length === 0

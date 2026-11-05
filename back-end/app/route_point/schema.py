@@ -25,3 +25,7 @@ class RoutePointEdit(RoutePointSchema):
 class RoutePOintDelete(RoutePointSchema):
     pass
 
+
+class StopSchema(BaseModel):
+    id: uuid.UUID = Field(..., description="The ID of one route point with this stop name")
+    point_name: str = Field(..., description="The stop name")

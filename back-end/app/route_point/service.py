@@ -1,5 +1,6 @@
 from fastapi import HTTPException
-from sqlalchemy import update
+from sqlalchemy import select, update
+from sqlalchemy.dialects.postgresql import distinct_on
 from sqlalchemy.orm import Session
 
 from app.route_point import schema
@@ -84,3 +85,19 @@ def delete_route_point(session: Session, route_point_id: str) -> None:
         session.rollback()
         raise
 
+
+
+def search_stops(session: Session, query: str, limit: int = 8) -> list[RoutePoint]:
+    """
+    Search stop names for the location picker. The same stop is stored once per route,
+    so return one route point per name; the fare search matches routes by name anyway.
+    """
+    return list(
+        session.execute(
+            select(RoutePoint)
+            .where(RoutePoint.point_name.icontains(query.strip(), autoescape=True))
+            .ext(distinct_on(RoutePoint.point_name))
+            .order_by(RoutePoint.point_name)
+            .limit(limit)
+        ).scalars()
+    )
