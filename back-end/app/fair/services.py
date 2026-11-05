@@ -1,14 +1,19 @@
+import logging
 import math
 import uuid
 from decimal import Decimal
 
 from fastapi import HTTPException
 from sqlalchemy import case, func, select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session, aliased
 
-from app.fair.model import FareMatrix
+from app.fair.model import FareMatrix, SavedFare
+from app.fair.schema import RouteMatchSchema
 from app.route_point.model import RoutePoint
 from app.routes.model import Route
+
+logger = logging.getLogger(__name__)
 
 
 def compute_fare(
@@ -36,6 +41,7 @@ def get_route_points(db: Session, start_point_id: uuid.UUID, end_point_id: uuid.
     """
     Get every route that contains both the start and end point (in either direction),
     with the route points from start to end in travel order.
+    A result already saved for the stop pair is returned without searching again.
     """
 
     if start_point_id == end_point_id:
@@ -54,6 +60,39 @@ def get_route_points(db: Session, start_point_id: uuid.UUID, end_point_id: uuid.
     for point_id in (start_point_id, end_point_id):
         if point_id not in names:
             raise HTTPException(status_code=404, detail=f"Route point with ID {point_id} not found")
+
+    start_name, end_name = names[start_point_id], names[end_point_id]
+
+    saved = db.get(SavedFare, (start_name, end_name))
+    if saved is not None:
+        return saved.routes
+
+    routes = search_routes(db, start_name, end_name)
+
+    # Save only complete results: a route without a fare yet must be searched again once
+    # its distances are filled (the DB triggers clear saved fares when route_points change)
+    if all(route["regular_fare"] is not None for route in routes):
+        try:
+            # Two first-time requests for the same pair may race; the first insert wins
+            db.execute(
+                insert(SavedFare)
+                .values(start_point_name=start_name, end_point_name=end_name, routes=routes)
+                .on_conflict_do_nothing()
+            )
+            db.commit()
+        except Exception:
+            # Saving is an optimization; still answer the request if it fails
+            db.rollback()
+            logger.exception("Failed to save fare for %s -> %s", start_name, end_name)
+
+    return routes
+
+
+def search_routes(db: Session, start_name: str, end_name: str) -> list[dict]:
+    """
+    Run the route search and fare computation for two stop names.
+    Returns JSON-ready dicts in the /fair/routes response shape, so they can be saved as-is.
+    """
 
     origin = aliased(RoutePoint)
     destination = aliased(RoutePoint)
@@ -74,8 +113,8 @@ def get_route_points(db: Session, start_point_id: uuid.UUID, end_point_id: uuid.
         # Filter only routes that contain both points, in any order
         # ponytail: a route listing the same stop name twice (loop) matches once per pair, dedupe if loops are added
         .where(
-            origin.point_name == names[start_point_id],
-            destination.point_name == names[end_point_id],
+            origin.point_name == start_name,
+            destination.point_name == end_name,
             origin.id != destination.id,
         )
     ).subquery()
@@ -128,4 +167,7 @@ def get_route_points(db: Session, start_point_id: uuid.UUID, end_point_id: uuid.
         regular, discounted = compute_fare(distance, fares)
         route.update(distance_km=distance, regular_fare=regular, discounted_fare=discounted)
 
-    return list(routes.values())
+    return [
+        RouteMatchSchema.model_validate(route, from_attributes=True).model_dump(mode="json")
+        for route in routes.values()
+    ]

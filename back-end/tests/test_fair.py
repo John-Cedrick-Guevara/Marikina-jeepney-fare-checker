@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select, update
 
 from app.db.database import SessionLocal
-from app.fair.model import FareMatrix
+from app.fair.model import FareMatrix, SavedFare
 from app.fair.services import compute_fare
 from app.main import app
 from app.route_point.model import RoutePoint
@@ -166,3 +166,41 @@ def test_sto_nino_to_olopsc():
             assert (result["regular_fare"], result["discounted_fare"]) == (14, 11.25)  # 3.745 km -> 4 km
     finally:
         client.delete(f"/routes/{route_id}")
+
+
+def saved_fare(start, end):
+    with SessionLocal() as db:
+        return db.get(SavedFare, (start, end))
+
+
+def test_complete_result_is_saved_and_reused(routes):
+    p1 = routes["Fair 1"]["points"]
+    set_distances({p1["B"]: "1.2", p1["C"]: "2.5", p1["D"]: "2.6", p1["E"]: "9"})
+    # Fair 1 only, so every route in the result has a fare
+    first = search(p1["C"], p1["E"]).json()
+    assert saved_fare("C", "E").routes == first
+
+    # A hit returns the saved row without searching: prove it by tampering with the row
+    with SessionLocal() as db:
+        db.execute(update(SavedFare).where(SavedFare.start_point_name == "C").values(routes=[]))
+        db.commit()
+    assert search(p1["C"], p1["E"]).json() == []
+
+
+def test_result_missing_a_fare_is_not_saved(routes):
+    p1 = routes["Fair 1"]["points"]
+    # Fair 2 also connects B and D but has no distances yet
+    set_distances({p1["C"]: "2.5", p1["D"]: "2.6"})
+    search(p1["B"], p1["D"])
+    assert saved_fare("B", "D") is None
+
+
+def test_editing_routes_clears_saved_fares(routes):
+    p1 = routes["Fair 1"]["points"]
+    set_distances({p1["D"]: "2.6", p1["E"]: "9"})
+    search(p1["D"], p1["E"])
+    assert saved_fare("D", "E") is not None
+
+    # Any write to routes / route_points / fare_matrix clears every saved fare (DB trigger)
+    client.put(f"/routes/{routes['Fair 3']['id']}", json={"route_name": "Fair 3 renamed"})
+    assert saved_fare("D", "E") is None
