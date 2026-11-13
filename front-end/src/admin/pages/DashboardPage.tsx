@@ -158,10 +158,11 @@ function Status({ ok, okText, badText }: { ok: boolean; okText: string; badText:
 function DailyChart({ daily, days }: { daily: Stats['daily']; days: number }) {
   const [active, setActive] = useState<number | null>(null)
   const byDay = new Map(daily.map((d) => [d.day, d]))
-  const today = new Date()
+  // Days are Manila calendar days, matching how the API groups lookups ("en-CA" formats as YYYY-MM-DD)
+  const today = new Date(`${new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' })}T00:00:00Z`)
   const series = Array.from({ length: days }, (_, i) => {
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (days - 1 - i))
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const date = new Date(today.getTime() - (days - 1 - i) * 86_400_000)
+    const key = date.toISOString().slice(0, 10)
     return { key, date, lookups: byDay.get(key)?.lookups ?? 0, withFare: byDay.get(key)?.with_fare ?? 0 }
   })
   const max = Math.max(1, ...series.map((d) => d.lookups))
@@ -169,7 +170,7 @@ function DailyChart({ daily, days }: { daily: Stats['daily']; days: number }) {
   const slot = (W - left) / days
   const barW = Math.max(2, slot - 2)  // 2px gap between bars
   const shown = active !== null ? series[active] : null
-  const label = (d: Date) => d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric' })
+  const label = (d: Date) => d.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', timeZone: 'UTC' })
 
   return (
     <div className={dash.chart}>

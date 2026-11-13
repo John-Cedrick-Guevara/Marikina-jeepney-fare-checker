@@ -40,8 +40,9 @@ export default function FareChart() {
   const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
     const box = e.currentTarget.getBoundingClientRect()
     const plotX = ((e.clientX - box.left) / box.width) * W
-    const km = Math.round(((plotX - PAD.left) / PLOT_W) * (maxKm - 1)) + 1
-    setActive(Math.min(rows.length - 1, Math.max(0, rows.findIndex((r) => r.distance_km >= km))))
+    // Clamp to the plotted range so the margins snap to the first or last kilometer
+    const km = Math.min(maxKm, Math.max(1, Math.round(((plotX - PAD.left) / PLOT_W) * (maxKm - 1)) + 1))
+    setActive(Math.max(0, rows.findIndex((r) => r.distance_km >= km)))
   }
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return
