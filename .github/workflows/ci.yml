@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # scan every commit, not only the latest
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # API: ruff, pinned so CI flags exactly what a local run flags; run from back-end/ so
+      # `app` sorts as first-party code
+      - run: pipx run ruff==0.17.3 check --isolated app tests
+        working-directory: back-end
+      # Web app: TypeScript type check
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: front-end/package-lock.json
+      - run: npm ci && npm run typecheck
+        working-directory: front-end

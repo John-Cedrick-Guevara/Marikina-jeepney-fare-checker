@@ -1,5 +1,4 @@
 import os
-
 import time
 
 import jwt
@@ -8,7 +7,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 # Set before the app is imported: a rate limit the suite never hits
 os.environ.setdefault("PUBLIC_RATE_LIMIT_PER_MINUTE", "100000")
 
-from app import security  # noqa: E402
+from app import security
 
 # Admin tokens are signed with a throwaway key instead of Supabase's; the app verifies them
 # exactly like real ones, only the public key lookup is swapped

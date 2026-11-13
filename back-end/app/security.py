@@ -38,7 +38,7 @@ class Admin:
     email: str
 
 
-def require_admin(authorization: Annotated[str | None, Header()] = None) -> Admin:
+def require_admin(request: Request, authorization: Annotated[str | None, Header()] = None) -> Admin:
     """
     Allow the request only for a signed-in Supabase user whose app_metadata.role is "admin".
     app_metadata can only be set server-side (SQL or the Supabase dashboard), not by the user.
@@ -66,7 +66,9 @@ def require_admin(authorization: Annotated[str | None, Header()] = None) -> Admi
     if (claims.get("app_metadata") or {}).get("role") != "admin":
         raise HTTPException(status_code=403, detail="This account is not an admin.")
 
-    return Admin(user_id=claims["sub"], email=claims.get("email", ""))
+    admin = Admin(user_id=claims["sub"], email=claims.get("email", ""))
+    request.state.admin = admin  # read by the audit log middleware in main.py
+    return admin
 
 
 class RateLimiter:

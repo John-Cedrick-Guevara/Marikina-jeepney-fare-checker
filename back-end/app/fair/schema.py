@@ -59,3 +59,9 @@ class FareDataStatusSchema(BaseModel):
     puv_type: str
     label: str
     fare_matrix: FareMatrixInfoSchema | None = Field(..., description="The matrix in effect, if any")
+
+
+class FareRowSchema(BaseModel):
+    distance_km: int = Field(..., description="Trip distance, rounded up to whole kilometers")
+    regular_fare: float
+    discounted_fare: float = Field(..., description="The student / senior citizen / PWD fare")

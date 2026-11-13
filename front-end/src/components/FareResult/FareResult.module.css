@@ -77,13 +77,13 @@
   font-size: 0.55em;
   vertical-align: top;
   margin-top: 8px;
-  color: var(--orange);
+  color: var(--orange-text);
 }
 
 .fareLabel {
   font-size: 13px;
   font-weight: 700;
-  color: var(--gray);
+  color: var(--gray-text);
   margin-top: 6px;
 }
 
@@ -92,7 +92,7 @@
   align-items: center;
   gap: 4px;
   background: rgba(61, 184, 122, 0.12);
-  color: var(--green);
+  color: var(--green-text);
   border-radius: 20px;
   padding: 4px 12px;
   font-size: 12px;
@@ -139,9 +139,9 @@
 .dotEnd   { background: var(--navy); }
 
 .routePointLabel {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
-  color: var(--gray);
+  color: var(--gray-text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -161,11 +161,11 @@
 }
 
 .breakdownTitle {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  color: var(--gray);
+  color: var(--gray-text);
   margin-bottom: 10px;
 }
 
@@ -179,7 +179,7 @@
 }
 
 .rowLabel {
-  color: var(--gray);
+  color: var(--gray-text);
   font-weight: 600;
 }
 
@@ -195,8 +195,8 @@
 
 /* Disclaimer */
 .disclaimer {
-  font-size: 10px;
-  color: var(--gray);
+  font-size: 11px;
+  color: var(--gray-text);
   font-weight: 500;
   text-align: center;
   margin-top: 14px;

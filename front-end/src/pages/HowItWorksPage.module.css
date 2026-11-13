@@ -11,11 +11,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--orange-text);
   margin-bottom: 12px;
 }
 
@@ -37,7 +37,7 @@
 
 .sub {
   font-size: 15px;
-  color: var(--gray);
+  color: var(--gray-text);
   font-weight: 600;
   margin-bottom: 40px;
 }
@@ -80,7 +80,7 @@
 
 .stepBody {
   font-size: 14px;
-  color: var(--gray);
+  color: var(--gray-text);
   font-weight: 600;
   line-height: 1.6;
 }

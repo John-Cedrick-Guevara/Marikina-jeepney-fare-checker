@@ -42,7 +42,7 @@ def parse_fare_pdf(data: bytes) -> tuple[list[dict], list[str]]:
     try:
         with pdfplumber.open(io.BytesIO(data)) as pdf:
             text = "\n".join(page.extract_text() or "" for page in pdf.pages)
-    except Exception as err:  # pdfminer raises many types for broken files
+    except Exception as err:  # noqa: BLE001 - pdfminer raises many types for broken files
         return [], [f"The PDF could not be read ({type(err).__name__}). Enter the rows by hand or paste them as CSV."]
 
     if not text.strip():

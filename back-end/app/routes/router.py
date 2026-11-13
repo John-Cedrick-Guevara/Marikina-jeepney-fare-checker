@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.security import require_admin
 from app.routes import schema, service
+from app.security import require_admin
 
 router = APIRouter(
     prefix="/v1/admin/routes",

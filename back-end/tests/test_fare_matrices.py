@@ -50,7 +50,7 @@ def created():
 # ---------------------------------------------------------------- Parser
 
 def test_parser_reads_common_row_formats():
-    parsed, warnings = parse_fare_rows("\n".join([
+    parsed, warnings = parse_fare_rows("\n".join([  # noqa: FLY002 - one row per line reads better
         "LTFRB Memorandum Circular 2023-012",
         "2023 12 1",                       # a year, not a 202 km row
         "Distance (km)  Regular  Discounted",

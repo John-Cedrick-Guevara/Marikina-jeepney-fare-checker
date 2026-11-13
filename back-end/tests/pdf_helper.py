@@ -7,8 +7,8 @@ def make_pdf(lines: list[str]) -> bytes:
     objects = [
         "<< /Type /Catalog /Pages 2 0 R >>",
         "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-        "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Contents 4 0 R "
-        "/Resources << /Font << /F1 5 0 R >> >> >>",
+        ("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Contents 4 0 R "
+        "/Resources << /Font << /F1 5 0 R >> >> >>"),
         f"<< /Length {len(text_ops)} >>\nstream\n{text_ops}endstream",
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
     ]

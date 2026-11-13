@@ -1,3 +1,4 @@
+import itertools
 import uuid
 
 from fastapi import HTTPException
@@ -110,7 +111,7 @@ def set_route_stops(session: Session, route_id: uuid.UUID, stop_ids: list[uuid.U
     ).scalars().all()
     known_distances = {
         (previous.stop_id, current.stop_id): current.distance_from_previous_km
-        for previous, current in zip(old, old[1:])
+        for previous, current in itertools.pairwise(old)
     }
 
     session.execute(delete(RouteStop).where(RouteStop.route_id == route_id))

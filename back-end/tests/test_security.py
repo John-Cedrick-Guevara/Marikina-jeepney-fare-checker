@@ -1,3 +1,4 @@
+import os
 from types import SimpleNamespace
 
 import pytest
@@ -39,8 +40,8 @@ def test_writes_need_an_admin_login(method, path):
 
 
 def test_token_signed_by_another_key_is_rejected():
-    from cryptography.hazmat.primitives.asymmetric import ec
     import jwt as pyjwt
+    from cryptography.hazmat.primitives.asymmetric import ec
     forged = pyjwt.encode({"sub": "x", "aud": "authenticated", "app_metadata": {"role": "admin"}},
                           ec.generate_private_key(ec.SECP256R1()), algorithm="ES256")
     assert anonymous.post("/v1/admin/stops", json={}, headers={"Authorization": f"Bearer {forged}"}).status_code == 401
@@ -72,6 +73,7 @@ def test_rate_limiter_blocks_over_limit_per_ip():
 
 def test_unreachable_signing_keys_is_503_not_expired(monkeypatch):
     import jwt as pyjwt
+
     from app import security
 
     def unreachable(token):
@@ -82,6 +84,7 @@ def test_unreachable_signing_keys_is_503_not_expired(monkeypatch):
     assert response.status_code == 503
 
 
+@pytest.mark.skipif(not os.getenv("SUPABASE_URL", "").startswith("https://"), reason="needs the hosted Supabase project")
 def test_real_jwks_is_reachable():
     # Guards the CA bundle fix: the live Supabase key set must be fetchable over TLS
     from app import security

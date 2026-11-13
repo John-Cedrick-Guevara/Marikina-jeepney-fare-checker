@@ -1,9 +1,10 @@
 import type { PuvType } from '../../services/api'
+import Icon, { type IconName } from '../Icon/Icon'
 import styles from './TransportSelector.module.css'
 
-export const TRANSPORT_OPTIONS: { id: PuvType; label: string; sub: string; icon: string }[] = [
-  { id: 'traditional_jeepney', label: 'Jeepney', sub: 'Traditional', icon: '🚌' },
-  { id: 'modern_jeepney', label: 'Beep Jeep', sub: 'Modern / E-Jeep', icon: '🚐' },
+export const TRANSPORT_OPTIONS: { id: PuvType; label: string; sub: string; icon: IconName }[] = [
+  { id: 'traditional_jeepney', label: 'Jeepney', sub: 'Traditional', icon: 'jeepney' },
+  { id: 'modern_jeepney', label: 'Beep Jeep', sub: 'Modern / E-Jeep', icon: 'ejeep' },
 ]
 
 export const transportLabel = (id: PuvType) =>
@@ -33,7 +34,7 @@ export default function TransportSelector({ value, onChange, unavailable }: Prop
             onClick={() => onChange(opt.id)}
             aria-pressed={active}
           >
-            <span className={styles.icon}>{opt.icon}</span>
+            <span className={styles.icon}><Icon name={opt.icon} /></span>
             <span className={styles.labelWrap}>
               <span className={styles.label}>{opt.label}</span>
               <span className={styles.sub}>{unavailable.includes(opt.id) ? 'Fares coming soon' : opt.sub}</span>

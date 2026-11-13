@@ -8,9 +8,10 @@ import StopsPage from './pages/StopsPage'
 import RoutesPage from './pages/RoutesPage'
 import RouteEditor from './pages/RouteEditor'
 import SavedFaresPage from './pages/SavedFaresPage'
+import DashboardPage from './pages/DashboardPage'
 import styles from './admin.module.css'
 
-/** Admin panel: sign-in gate, then fare matrices, stops, routes and saved fares. */
+/** Admin panel: sign-in gate, then the KPI dashboard, fare matrices, stops, routes and saved fares. */
 export default function AdminApp() {
   const [session, setSession] = useState<Session | null>(null)
   const [checking, setChecking] = useState(true)
@@ -56,8 +57,9 @@ export default function AdminApp() {
   return (
     <div className={styles.shell}>
       <header className={styles.topbar}>
-        <span className={styles.brand}>Sakay admin</span>
+        <span className={styles.brand}>Commute.ph admin</span>
         <nav className={styles.nav} aria-label="Admin sections">
+          <NavLink to="/admin/dashboard" className={link}>Dashboard</NavLink>
           <NavLink to="/admin/fare-matrices" className={link}>Fare matrices</NavLink>
           <NavLink to="/admin/stops" className={link}>Stops</NavLink>
           <NavLink to="/admin/routes" className={link}>Routes</NavLink>
@@ -71,7 +73,8 @@ export default function AdminApp() {
 
       <main className={styles.main}>
         <Routes>
-          <Route index element={<Navigate to="fare-matrices" replace />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="fare-matrices" element={<FareMatricesPage />} />
           <Route path="fare-matrices/:id" element={<FareMatrixEditor />} />
           <Route path="stops" element={<StopsPage />} />
@@ -105,7 +108,7 @@ function SignIn() {
   return (
     <main className={`${styles.login} ${styles.section}`}>
       <h1 className={styles.title}>Admin sign-in</h1>
-      <p className={styles.subtitle}>Sakay fare data management</p>
+      <p className={styles.subtitle}>Commute.ph fare data management</p>
       <form onSubmit={submit} style={{ display: 'grid', gap: 12 }}>
         <label className={styles.field}>
           Email

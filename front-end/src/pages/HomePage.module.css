@@ -30,11 +30,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: var(--orange);
+  color: var(--orange-text);
 }
 
 .eyebrow::before {
@@ -71,15 +71,15 @@
 
 .subtext {
   font-size: 15px;
-  color: var(--gray);
+  color: var(--gray-text);
   font-weight: 600;
   line-height: 1.6;
   max-width: 380px;
 }
 
 .footnote {
-  font-size: 11px;
-  color: var(--gray);
+  font-size: 12px;
+  color: var(--gray-text);
   font-weight: 500;
 }
 
@@ -187,11 +187,11 @@
   font-size: clamp(16px, 2.5vw, 22px);
   font-weight: 800;
   color: var(--navy);
-  opacity: 0.2;
+  opacity: 0.75;
   text-align: center;
 }
 
-.taglineAccent { color: var(--orange); opacity: 0.45; }
+.taglineAccent { color: var(--orange-text); opacity: 1; }
 
 /* Mobile: jeepney goes on top */
 @media (max-width: 899px) {
@@ -257,7 +257,7 @@
 }
 
 .featureSub {
-  font-size: 11px;
+  font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
   font-weight: 600;
 }

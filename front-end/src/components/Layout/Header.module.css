@@ -39,11 +39,11 @@
   letter-spacing: -0.5px;
 }
 
-.dot { color: var(--yellow-dark); }
+.dot { color: var(--orange-text); }
 
 .tagline {
   font-size: 13px;
-  color: var(--gray);
+  color: var(--gray-text);
   font-weight: 600;
   padding-left: 16px;
   border-left: 1.5px solid var(--cream-dark);

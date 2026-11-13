@@ -62,6 +62,25 @@ export interface RouteDetail {
   stops: { stop_id: string; name: string; stop_sequence: number; distance_from_previous_km: number | null }[]
 }
 
+export interface Stats {
+  days: number
+  total_lookups: number
+  success_rate: number | null
+  unsupported_rate: number | null
+  avg_response_ms: number | null
+  daily: { day: string; lookups: number; with_fare: number }[]
+  top_trips: { origin: string; destination: string; lookups: number }[]
+  fare_data: { puv_type: PuvType; label: string; effective_from: string | null; age_days: number | null }[]
+}
+
+export interface AuditEntry {
+  admin_email: string
+  method: string
+  path: string
+  status_code: number
+  created_at: string
+}
+
 export interface SavedFare {
   id: string
   origin: string
@@ -152,6 +171,8 @@ export const adminApi = {
   // Saved fares
   listSavedFares: (includeDeleted: boolean) =>
     request<SavedFare[]>('GET', `/v1/admin/saved-fares?include_deleted=${includeDeleted}`),
+  stats: (days: number) => request<Stats>('GET', `/v1/admin/stats?days=${days}`),
+  auditLog: () => request<AuditEntry[]>('GET', '/v1/admin/audit-log?limit=20'),
 }
 
 /** "2026-11-04" or an ISO timestamp -> "Nov 4, 2026" */
