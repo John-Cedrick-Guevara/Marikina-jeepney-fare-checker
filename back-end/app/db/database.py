@@ -11,7 +11,7 @@ except ImportError:
     pass
 
 # Get connection string from environment variable
-# Without one, use the local database from `supabase db start` (tests, CI); engines connect lazily,
+# Without one, use the local database from `supabase db start` (tests); engines connect lazily,
 # so importing the app never fails
 SUPABASE_CONNECTION_STRING = os.getenv(
     "SUPABASE_CONNECTION_STRING", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"

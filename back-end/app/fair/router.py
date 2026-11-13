@@ -6,9 +6,9 @@ from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
-from app.security import public_rate_limit
 from app.fair import schema, services
 from app.monitoring.model import record_lookup
+from app.security import public_rate_limit
 
 router = APIRouter(
     prefix="/v1",

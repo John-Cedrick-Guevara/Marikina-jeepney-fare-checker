@@ -1,3 +1,4 @@
+import itertools
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
@@ -94,7 +95,7 @@ def check(version: FareMatrixVersion, rows: list) -> dict:
     kms = [r.distance_km for r in rows]
     if kms[0] != 1:
         errors.append(f"The matrix must start at 1 km (it starts at {kms[0]} km).")
-    gaps = [km for prev, km in zip(kms, kms[1:]) if km != prev + 1]
+    gaps = [km for prev, km in itertools.pairwise(kms) if km != prev + 1]
     if gaps:
         errors.append(f"Missing distances before: {', '.join(f'{km} km' for km in gaps)}.")
 
@@ -104,7 +105,7 @@ def check(version: FareMatrixVersion, rows: list) -> dict:
             warnings.append(f"{row.distance_km} km: the discount isn't about 20% "
                             f"(₱{row.regular_fare} regular, ₱{row.discounted_fare} discounted).")
 
-    for prev, row in zip(rows, rows[1:]):
+    for prev, row in itertools.pairwise(rows):
         if row.regular_fare < prev.regular_fare:
             errors.append(f"{row.distance_km} km: the regular fare is lower than at {prev.distance_km} km.")
         if row.discounted_fare < prev.discounted_fare:
