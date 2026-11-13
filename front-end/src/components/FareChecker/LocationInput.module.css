@@ -40,7 +40,7 @@
 
 .label {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
@@ -113,7 +113,7 @@
 }
 
 .errorMsg {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--red-text);
   margin-top: 6px;
