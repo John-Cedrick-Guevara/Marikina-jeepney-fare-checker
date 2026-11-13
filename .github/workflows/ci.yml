@@ -33,6 +33,8 @@ jobs:
       - run: pip install -r requirements.txt pytest
       # Local Postgres with every migration applied (the tests' default connection string)
       - uses: supabase/setup-cli@v1
+        with:
+          version: 2.119.0  # the CLI that wrote supabase/config.toml; older ones can't parse it
       - run: supabase db start
       - run: python -m pytest -q
 
