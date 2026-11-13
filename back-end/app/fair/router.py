@@ -1,3 +1,4 @@
+import time
 import uuid
 from typing import Annotated
 
@@ -7,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.security import public_rate_limit
 from app.fair import schema, services
+from app.monitoring.model import record_lookup
 
 router = APIRouter(
     prefix="/v1",
@@ -32,7 +34,10 @@ def estimate_fare(
     :param session: SQLAlchemy session object
     :return: The fare matrix in effect and the matching routes
     """
-    return services.estimate_fare(session, origin_stop_id, destination_stop_id, puv_type)
+    started = time.perf_counter()
+    response = services.estimate_fare(session, origin_stop_id, destination_stop_id, puv_type)
+    record_lookup(session, response, duration_ms=round((time.perf_counter() - started) * 1000))
+    return response
 
 
 @router.get("/transport-types", response_model=list[schema.TransportTypeSchema])
