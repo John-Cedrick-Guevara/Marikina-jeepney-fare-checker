@@ -1,4 +1,6 @@
 import { Link } from 'react-router-dom'
+import Icon from '../components/Icon/Icon'
+import FareChart from '../components/FareChart/FareChart'
 import styles from './HowItWorksPage.module.css'
 
 const STEPS = [
@@ -25,7 +27,7 @@ const STEPS = [
   {
     num: '5',
     title: 'Confirm with your driver',
-    body: 'Sakay shows estimates. Always verify the actual fare with your driver or operator before riding.',
+    body: 'Commute.ph shows estimates. Always verify the actual fare with your driver or operator before riding.',
   },
 ]
 
@@ -51,17 +53,19 @@ export default function HowItWorksPage() {
           ))}
         </div>
 
+        <FareChart />
+
         <div className={styles.disclaimer}>
           <p>
-            <strong>⚠ Important:</strong> Fares shown are estimates from the fare
+            <strong><Icon name="alert" /> Important:</strong> Fares shown are estimates from the fare
             matrix on file, and each result shows that matrix's source and
-            effective date. Sakay is not affiliated with LTFRB or any government
+            effective date. Commute.ph is not affiliated with LTFRB or any government
             agency.
           </p>
         </div>
 
         <Link to="/" className={styles.backBtn}>
-          ← Back to fare checker
+          <Icon name="arrowLeft" /> Back to fare checker
         </Link>
       </div>
     </div>

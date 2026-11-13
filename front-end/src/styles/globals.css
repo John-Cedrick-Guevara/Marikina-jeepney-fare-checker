@@ -18,6 +18,14 @@
   --gray-light:   #E8ECF4;
   --white:        #FFFFFF;
 
+  /* Text-safe shades: at least 4.5:1 (WCAG AA) on cream, white and the light tints.
+     The base colours above are for fills, borders and icons only. */
+  --gray-text:    #5D6579;
+  --orange-text:  #B4501A;
+  --green-text:   #1F7A4D;
+  --red-text:     #C0352F;
+  --sky-text:     #1F6FA8;
+
   --shadow-sm: 0 2px 8px rgba(26,35,64,0.08);
   --shadow-md: 0 4px 20px rgba(26,35,64,0.12);
   --shadow-lg: 0 8px 40px rgba(26,35,64,0.18);
@@ -47,11 +55,35 @@ body {
   }
 }
 
-/* Focus ring */
+/* Focus ring: navy outline (14:1 on cream) with a yellow halo, visible on light and dark fills */
 :focus-visible {
-  outline: 3px solid var(--yellow);
+  outline: 3px solid var(--navy);
   outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--yellow);
   border-radius: 4px;
+}
+
+/* Skip link: first Tab stop, jumps past the header to the fare form */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 1000;
+  padding: 10px 16px;
+  background: var(--navy);
+  color: var(--white);
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+}
+.skip-link:focus { top: 12px; }
+
+/* Text for screen readers only */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 a { text-decoration: none; color: inherit; }

@@ -1,11 +1,12 @@
 import { useEffect, useRef } from 'react'
 import type { FareResult as FareResultData, PuvType } from '../../services/api'
 import { transportLabel } from '../FareChecker/TransportSelector'
+import Icon, { type IconName } from '../Icon/Icon'
 import styles from './FareResult.module.css'
 
-const TRANSPORT_ICONS: Record<PuvType, string> = {
-  traditional_jeepney: '🚌',
-  modern_jeepney: '🚐',
+const TRANSPORT_ICONS: Record<PuvType, IconName> = {
+  traditional_jeepney: 'jeepney',
+  modern_jeepney: 'ejeep',
 }
 
 export default function FareResult({ result, onClose }: {
@@ -13,13 +14,25 @@ export default function FareResult({ result, onClose }: {
   onClose: () => void
 }) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const cardRef = useRef<HTMLDivElement>(null)
 
-  // Trap focus inside modal and close on Escape
+  // Keep Tab inside the modal, close on Escape, and give focus back to the form when it closes
   useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
     closeRef.current?.focus()
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose()
+      if (e.key !== 'Tab' || !cardRef.current) return
+      const focusable = cardRef.current.querySelectorAll<HTMLElement>('button, a[href], [tabindex]:not([tabindex="-1"])')
+      const first = focusable[0], last = focusable[focusable.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
     document.addEventListener('keydown', handler)
-    return () => document.removeEventListener('keydown', handler)
+    return () => {
+      document.removeEventListener('keydown', handler)
+      opener?.focus()
+    }
   }, [onClose])
 
   const icon = TRANSPORT_ICONS[result.transport]
@@ -33,14 +46,14 @@ export default function FareResult({ result, onClose }: {
       aria-label="Fare result"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
-      <div className={styles.card}>
+      <div className={styles.card} ref={cardRef}>
         {/* Jeepney arrival animation */}
-        <div className={styles.jeepneyArrival} aria-hidden="true">{icon}</div>
+        <div className={styles.jeepneyArrival} aria-hidden="true"><Icon name={icon} /></div>
 
         {/* Header */}
         <div className={styles.header}>
           <span className={styles.transportBadge}>
-            {icon} {result.routeName}
+            <Icon name={icon} /> {result.routeName}
           </span>
 
           <div className={styles.fare}>
@@ -51,7 +64,7 @@ export default function FareResult({ result, onClose }: {
 
           {hasDiscount && (
             <span className={styles.discountTag}>
-              🎟 20% {result.passengerType} discount applied
+              <Icon name="ticket" /> 20% {result.passengerType} discount applied
             </span>
           )}
         </div>
@@ -59,7 +72,7 @@ export default function FareResult({ result, onClose }: {
         {/* Route */}
         <div className={styles.route}>
           <div className={styles.routePoint}>
-            <div className={`${styles.dot} ${styles.dotStart}`}>📍</div>
+            <div className={`${styles.dot} ${styles.dotStart}`}><Icon name="pin" /></div>
             <div>
               <p className={styles.routePointLabel}>From</p>
               <p className={styles.routePointName}>{result.from}</p>
@@ -67,7 +80,7 @@ export default function FareResult({ result, onClose }: {
           </div>
           <div className={styles.connector} />
           <div className={styles.routePoint}>
-            <div className={`${styles.dot} ${styles.dotEnd}`}>🎯</div>
+            <div className={`${styles.dot} ${styles.dotEnd}`}><Icon name="flag" /></div>
             <div>
               <p className={styles.routePointLabel}>To</p>
               <p className={styles.routePointName}>{result.to}</p>
@@ -101,7 +114,7 @@ export default function FareResult({ result, onClose }: {
 
         {/* Disclaimer */}
         <p className={styles.disclaimer}>
-          <strong>⚠ Estimate only.</strong> Always confirm the actual fare with
+          <strong><Icon name="alert" /> Estimate only.</strong> Always confirm the actual fare with
           your driver or operator.
           <br />
           <span className={styles.source}>
@@ -119,7 +132,7 @@ export default function FareResult({ result, onClose }: {
           className={styles.closeBtn}
           onClick={onClose}
         >
-          ↩ Check Another Route
+          <Icon name="arrowLeft" /> Check another route
         </button>
       </div>
     </div>

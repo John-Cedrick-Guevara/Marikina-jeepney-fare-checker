@@ -7,6 +7,6 @@
 
 .note {
   font-size: 11px;
-  color: var(--gray);
+  color: var(--gray-text);
   font-weight: 600;
 }

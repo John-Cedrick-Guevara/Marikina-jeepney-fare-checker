@@ -6,6 +6,7 @@ import {
   calculateFare, getStops, getTransportTypes,
   type FareResult, type PassengerType, type PuvType, type Stop,
 } from '../../services/api'
+import Icon from '../Icon/Icon'
 import styles from './FareCard.module.css'
 
 type Errors = { from?: string; to?: string; api?: string }
@@ -96,7 +97,7 @@ export default function FareCard({ onResult, onTransportChange }: {
           key={`from-${swapCount}`}
           id="from"
           label="Starting point"
-          icon="📍"
+          icon="pin"
           placeholder={stopsLoading ? 'Loading stops…' : 'Type a stop, e.g. Riverbanks'}
           stops={stops}
           disabled={stopsLoading}
@@ -113,14 +114,14 @@ export default function FareCard({ onResult, onTransportChange }: {
           aria-label="Swap starting and destination"
           title="Swap locations"
         >
-          ⇅
+          <Icon name="swap" />
         </button>
 
         <LocationInput
           key={`to-${swapCount}`}
           id="to"
           label="Destination"
-          icon="🎯"
+          icon="flag"
           placeholder={stopsLoading ? 'Loading stops…' : 'Type a stop, e.g. OLOPSC'}
           stops={stops}
           disabled={stopsLoading}
@@ -149,7 +150,7 @@ export default function FareCard({ onResult, onTransportChange }: {
 
       {/* API error */}
       {errors.api && (
-        <p className={styles.apiError} role="alert">⚠ {errors.api}</p>
+        <p className={styles.apiError} role="alert"><Icon name="alert" /> {errors.api}</p>
       )}
 
       {/* Submit */}
@@ -167,12 +168,12 @@ export default function FareCard({ onResult, onTransportChange }: {
         ) : (
           <>
             Check Fare
-            <span className={styles.arrow} aria-hidden="true">→</span>
+            <span className={styles.arrow} aria-hidden="true"><Icon name="arrowRight" /></span>
           </>
         )}
       </button>
 
-      <p className={styles.noSignup}>✓ No sign-ups. No hassle. Just your fare.</p>
+      <p className={styles.noSignup}><Icon name="check" /> No sign-ups. No hassle. Just your fare.</p>
     </form>
   )
 }

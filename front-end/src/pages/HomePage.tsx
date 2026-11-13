@@ -4,6 +4,7 @@ import { transportLabel } from '../components/FareChecker/TransportSelector'
 import FareCard from '../components/FareChecker/FareCard'
 import FareResult from '../components/FareResult/FareResult'
 import JeepneySVG from '../components/Jeepney/JeepneySVG'
+import Icon, { type IconName } from '../components/Icon/Icon'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
@@ -40,7 +41,7 @@ export default function HomePage() {
           />
 
           <p className={styles.footnote}>
-            ⊙ Marikina City routes only. Fares are estimates from the fare matrix
+            <Icon name="info" /> Marikina City routes only. Fares are estimates from the fare matrix
             in effect; the result shows its source and date.
           </p>
         </div>
@@ -54,7 +55,7 @@ export default function HomePage() {
 
             {/* Speech bubble */}
             <div className={styles.bubble}>
-              {transport === 'modern_jeepney' ? '🚐' : '🚌'}&nbsp;
+              <Icon name={transport === 'modern_jeepney' ? 'ejeep' : 'jeepney'} />&nbsp;
               {transportLabel(transport)} mode · Ready when you are
             </div>
 
@@ -88,7 +89,7 @@ export default function HomePage() {
           </div>
           {FEATURES.map((f) => (
             <div key={f.title} className={styles.feature}>
-              <div className={styles.featureIcon}>{f.icon}</div>
+              <div className={styles.featureIcon} aria-hidden="true"><Icon name={f.icon} /></div>
               <div>
                 <p className={styles.featureTitle}>{f.title}</p>
                 <p className={styles.featureSub}>{f.sub}</p>
@@ -104,8 +105,8 @@ export default function HomePage() {
   )
 }
 
-const FEATURES = [
-  { icon: '📍', title: 'Know before you go',   sub: 'A quick estimate, before your ride.' },
-  { icon: '🚐', title: 'Your ride, your choice', sub: 'Traditional or Beep Jeep. Your choice.' },
-  { icon: '✓',  title: 'Built for every Juan',  sub: 'Simple, free, and always welcoming.' },
+const FEATURES: { icon: IconName; title: string; sub: string }[] = [
+  { icon: 'pin', title: 'Know before you go',   sub: 'A quick estimate, before your ride.' },
+  { icon: 'ejeep', title: 'Your ride, your choice', sub: 'Traditional or Beep Jeep. Your choice.' },
+  { icon: 'check', title: 'Built for every Juan',  sub: 'Simple, free, and always welcoming.' },
 ]

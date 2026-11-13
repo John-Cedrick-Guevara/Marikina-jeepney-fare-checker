@@ -1,5 +1,6 @@
 import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react'
 import type { Stop } from '../../services/api'
+import Icon, { type IconName } from '../Icon/Icon'
 import styles from './LocationInput.module.css'
 
 /**
@@ -30,7 +31,7 @@ export function matchStops(stops: Stop[], text: string, excludeName?: string): S
 interface Props {
   id: string
   label: string
-  icon: string
+  icon: IconName
   stops: Stop[]
   value: Stop | null
   onChange: (stop: Stop | null) => void
@@ -108,7 +109,7 @@ export default function LocationInput({
   return (
     <div className={`${styles.wrapper} ${error ? styles.hasError : ''}`}>
       <div className={`${styles.field} ${open ? styles.active : ''}`}>
-        <span className={styles.icon} aria-hidden="true">{icon}</span>
+        <span className={styles.icon} aria-hidden="true"><Icon name={icon} /></span>
         <div className={styles.inputWrap}>
           <label htmlFor={id} className={styles.label}>{label}</label>
           <input
@@ -148,7 +149,7 @@ export default function LocationInput({
               // mousedown fires before the input's blur, so the pick isn't lost
               onMouseDown={(e) => { e.preventDefault(); handleSelect(stop) }}
             >
-              <span className={styles.itemIcon} aria-hidden="true">📍</span>
+              <span className={styles.itemIcon} aria-hidden="true"><Icon name="pin" /></span>
               <span className={styles.itemName}>{stop.name}</span>
             </li>
           ))}
@@ -156,7 +157,7 @@ export default function LocationInput({
       )}
 
       {error && (
-        <p id={`${id}-error`} className={styles.errorMsg} role="alert">⚠ {error}</p>
+        <p id={`${id}-error`} className={styles.errorMsg} role="alert"><Icon name="alert" /> {error}</p>
       )}
     </div>
   )

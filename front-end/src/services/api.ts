@@ -99,6 +99,17 @@ export function getStops(): Promise<Stop[]> {
 }
 
 /** The PUV types and whether fares are available for each. GET /v1/transport-types */
+export interface FareRow {
+  distance_km: number
+  regular_fare: number
+  discounted_fare: number
+}
+
+/** The fare per kilometer from the matrix in effect; empty when the PUV type has none. */
+export function getFareRows(puvType: PuvType): Promise<FareRow[]> {
+  return request<FareRow[]>(`/v1/fare-data/${puvType}/rows`)
+}
+
 export function getTransportTypes(): Promise<TransportType[]> {
   return request('/v1/transport-types')
 }
