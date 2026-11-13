@@ -1,3 +1,4 @@
+import os
 from types import SimpleNamespace
 
 import pytest
@@ -82,6 +83,7 @@ def test_unreachable_signing_keys_is_503_not_expired(monkeypatch):
     assert response.status_code == 503
 
 
+@pytest.mark.skipif(not os.getenv("SUPABASE_URL", "").startswith("https://"), reason="needs the hosted Supabase project")
 def test_real_jwks_is_reachable():
     # Guards the CA bundle fix: the live Supabase key set must be fetchable over TLS
     from app import security

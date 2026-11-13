@@ -11,10 +11,11 @@ except ImportError:
     pass
 
 # Get connection string from environment variable
-SUPABASE_CONNECTION_STRING = os.getenv("SUPABASE_CONNECTION_STRING")
-
-if not SUPABASE_CONNECTION_STRING:
-    raise ValueError("SUPABASE_CONNECTION_STRING environment variable is not set")
+# Without one, use the local database from `supabase db start` (tests, CI); engines connect lazily,
+# so importing the app never fails
+SUPABASE_CONNECTION_STRING = os.getenv(
+    "SUPABASE_CONNECTION_STRING", "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+)
 
 # Convert postgresql:// to postgresql+psycopg2:// to use psycopg2-binary
 connection_string = SUPABASE_CONNECTION_STRING
