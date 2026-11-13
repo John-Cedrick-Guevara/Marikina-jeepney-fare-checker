@@ -50,6 +50,16 @@ def fare_data_status(db: Session) -> list[dict]:
     ]
 
 
+def current_fare_rows(db: Session, puv_type: str) -> list[FareMatrixRow]:
+    """The rows of the fare matrix in effect for a PUV type, shortest distance first."""
+    version_id = current_version_id(db, puv_type)
+    if version_id is None:
+        return []
+    return list(db.execute(
+        select(FareMatrixRow).where(FareMatrixRow.version_id == version_id).order_by(FareMatrixRow.distance_km)
+    ).scalars())
+
+
 def version_info(db: Session, version_id: uuid.UUID | None) -> FareMatrixVersion | None:
     return db.get(FareMatrixVersion, version_id) if version_id else None
 

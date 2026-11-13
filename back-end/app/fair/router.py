@@ -51,6 +51,15 @@ def list_transport_types(session: Annotated[Session, Depends(get_db)]):
     return services.list_transport_types(session)
 
 
+@router.get("/fare-data/{puv_type}/rows", response_model=list[schema.FareRowSchema])
+def fare_rows(puv_type: str, session: Annotated[Session, Depends(get_db)]):
+    """
+    The fare per kilometer from the fare matrix in effect for a PUV type (for the fare chart).
+    Empty when the PUV type has no matrix in effect.
+    """
+    return services.current_fare_rows(session, puv_type)
+
+
 @router.get("/fare-data/status", response_model=list[schema.FareDataStatusSchema])
 def fare_data_status(session: Annotated[Session, Depends(get_db)]):
     """

@@ -244,3 +244,11 @@ def test_transport_types_and_fare_data_status():
     status = {s["puv_type"]: s for s in TestClient(app).get("/v1/fare-data/status").json()}
     assert status[JEEP]["fare_matrix"]["source_name"]
     assert status[MODERN]["fare_matrix"] is None
+
+
+def test_fare_rows_are_the_matrix_in_effect():
+    rows = client.get(f"/v1/fare-data/{JEEP}/rows").json()
+    distances = [row["distance_km"] for row in rows]
+    assert distances == sorted(distances) and distances[0] == 1
+    assert all(row["discounted_fare"] <= row["regular_fare"] for row in rows)
+    assert client.get("/v1/fare-data/no_such_type/rows").json() == []
