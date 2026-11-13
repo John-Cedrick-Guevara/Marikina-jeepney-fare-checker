@@ -22,8 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # API: ruff, pinned so CI flags exactly what a local run flags
-      - run: pipx run ruff==0.17.3 check --isolated back-end/app back-end/tests
+      # API: ruff, pinned so CI flags exactly what a local run flags; run from back-end/ so
+      # `app` sorts as first-party code
+      - run: pipx run ruff==0.17.3 check --isolated app tests
+        working-directory: back-end
       # Web app: TypeScript type check
       - uses: actions/setup-node@v4
         with:
