@@ -1,0 +1,91 @@
+/* ===================== RESET & BASE ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --yellow:       #F5C400;
+  --yellow-light: #FFF3B0;
+  --yellow-dark:  #D4A800;
+  --navy:         #1A2340;
+  --navy-mid:     #2A3558;
+  --cream:        #FAF7F0;
+  --cream-dark:   #F0EBE0;
+  --sky:          #5BB8F5;
+  --sky-light:    #D6EEFF;
+  --orange:       #F07B30;
+  --green:        #3DB87A;
+  --red:          #E84C4C;
+  --gray:         #8A93A8;
+  --gray-light:   #E8ECF4;
+  --white:        #FFFFFF;
+
+  /* Text-safe shades: at least 4.5:1 (WCAG AA) on cream, white and the light tints.
+     The base colours above are for fills, borders and icons only. */
+  --gray-text:    #5D6579;
+  --orange-text:  #B4501A;
+  --green-text:   #1F7A4D;
+  --red-text:     #C0352F;
+  --sky-text:     #1F6FA8;
+
+  --shadow-sm: 0 2px 8px rgba(26,35,64,0.08);
+  --shadow-md: 0 4px 20px rgba(26,35,64,0.12);
+  --shadow-lg: 0 8px 40px rgba(26,35,64,0.18);
+  --radius:    16px;
+  --radius-sm: 10px;
+
+  --font: 'Nunito', 'Segoe UI', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background-color: var(--cream);
+  color: var(--navy);
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus ring: navy outline (14:1 on cream) with a yellow halo, visible on light and dark fills */
+:focus-visible {
+  outline: 3px solid var(--navy);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px var(--yellow);
+  border-radius: 4px;
+}
+
+/* Skip link: first Tab stop, jumps past the header to the fare form */
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -100px;
+  z-index: 1000;
+  padding: 10px 16px;
+  background: var(--navy);
+  color: var(--white);
+  font-weight: 800;
+  border-radius: var(--radius-sm);
+}
+.skip-link:focus { top: 12px; }
+
+/* Text for screen readers only */
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+a { text-decoration: none; color: inherit; }
+button { font-family: var(--font); cursor: pointer; }
+input  { font-family: var(--font); }

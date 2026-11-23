@@ -1,0 +1,124 @@
+.wrapper {
+  position: relative;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: var(--cream);
+  border: 2px solid transparent;
+  border-radius: var(--radius-sm);
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  padding: 0 12px;
+}
+
+.field.active,
+.field:focus-within {
+  border-color: var(--navy);
+  box-shadow: 0 0 0 4px rgba(245, 196, 0, 0.45);
+  background: var(--white);
+}
+
+.hasError .field {
+  border-color: var(--red-text);
+  box-shadow: 0 0 0 3px rgba(232, 76, 76, 0.12);
+}
+
+.icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  padding-right: 8px;
+  pointer-events: none;
+  padding-top: 10px;
+}
+
+.inputWrap {
+  flex: 1;
+  padding: 10px 0;
+}
+
+.label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--gray-text);
+  margin-bottom: 2px;
+}
+
+.input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--navy);
+  outline: none;
+  padding: 0;
+}
+
+.input::placeholder { color: var(--gray-text); }
+
+/* Dropdown */
+.dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--gray-light);
+  z-index: 50;
+  max-height: 280px;
+  overflow-y: auto;
+  list-style: none;
+  animation: fadeDown 0.15s ease;
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.item {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.item:hover,
+.itemFocused {
+  background: var(--cream);
+}
+
+.itemIcon { font-size: 14px; flex-shrink: 0; }
+
+.itemName {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.empty {
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--gray-text);
+}
+
+.errorMsg {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--red-text);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  animation: fadeDown 0.2s ease;
+}

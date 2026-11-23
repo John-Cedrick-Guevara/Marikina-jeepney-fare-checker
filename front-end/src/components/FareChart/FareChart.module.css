@@ -1,0 +1,67 @@
+.figure {
+  background: var(--white);
+  border: 1.5px solid var(--gray-light);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 40px;
+}
+
+.title { font-size: 18px; font-weight: 900; color: var(--navy); }
+.subtitle { font-size: 13px; font-weight: 600; color: var(--gray-text); margin: 4px 0 12px; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  list-style: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+  margin-bottom: 8px;
+}
+.legend li { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 14px; height: 3px; border-radius: 2px; display: inline-block; }
+
+.plot { position: relative; }
+.svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+
+.grid { stroke: var(--gray-light); stroke-width: 1; }
+.axis { font-size: 12px; font-weight: 600; fill: var(--gray-text); }
+.line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.endLabel { font-size: 12px; font-weight: 800; fill: var(--navy); }
+.crosshair { stroke: var(--gray); stroke-width: 1; stroke-dasharray: 3 3; }
+.marker { stroke: var(--white); stroke-width: 2; }
+
+.tooltip {
+  position: absolute;
+  top: 8px;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 2px;
+  padding: 8px 10px;
+  background: var(--navy);
+  color: var(--white);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+.tooltip span { display: inline-flex; align-items: center; gap: 6px; }
+.tooltip i { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 0 1.5px var(--white); }
+
+.tableToggle { margin-top: 12px; font-size: 13px; font-weight: 700; color: var(--navy); }
+.tableToggle summary { cursor: pointer; width: fit-content; }
+.table { width: 100%; margin-top: 8px; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.table th, .table td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--gray-light); }
+.table th { color: var(--gray-text); font-size: 12px; text-transform: uppercase; letter-spacing: 0.6px; }
+
+.skeleton {
+  height: 320px;
+  border-radius: var(--radius);
+  background: var(--cream-dark);
+  margin-bottom: 40px;
+}
+
+.note { font-size: 13px; font-weight: 600; color: var(--gray-text); margin-bottom: 40px; }
